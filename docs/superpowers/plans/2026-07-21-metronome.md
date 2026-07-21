@@ -22,27 +22,103 @@
 
 ---
 
-### Task 1: Xcode 프로젝트 스캐폴딩 + swift-atomics 의존성
+### Task 1: XcodeGen 프로젝트 스캐폴딩 + swift-atomics 의존성
 
 **Files:**
-- Create: `metronome.xcodeproj` (Xcode 프로젝트, macOS App 템플릿)
+- Create: `project.yml` (XcodeGen 프로젝트 정의)
 - Create: `metronome/App/MetronomeApp.swift`
 - Create: `metronome/App/ContentView.swift` (임시 placeholder)
 - Create: `metronomeTests/SmokeTests.swift`
+- Generated: `metronome.xcodeproj` (xcodegen이 생성, git 미추적 권장)
 
 **Interfaces:**
 - Consumes: (없음)
 - Produces: 빌드 가능한 macOS 앱 타겟 `metronome`, 테스트 타겟 `metronomeTests`, SPM 의존성 `swift-atomics` (import Atomics 가능)
 
-- [ ] **Step 1: Xcode 프로젝트 생성**
+**환경 노트:** `xcodegen`이 설치되어 있어야 한다 (`brew install xcodegen`). `xcodebuild`(Xcode 26.x), Swift 6.3 사용. `.xcodeproj`는 생성물이므로 `.gitignore`에 추가하고 `project.yml`을 소스로 커밋한다.
 
-Xcode에서 macOS > App 템플릿으로 프로젝트를 생성한다 (Product Name: `metronome`, Interface: SwiftUI, Language: Swift, minimum deployment: macOS 14.0). 기존 `metronome.iml`, `.idea`는 그대로 둔다.
+- [ ] **Step 1: project.yml 작성**
 
-프로젝트 루트에 생성되도록 하고, Include Tests를 체크해 `metronomeTests` 타겟을 만든다.
+```yaml
+# project.yml
+name: metronome
+options:
+  bundleIdPrefix: dev.mongmeo
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+packages:
+  Atomics:
+    url: https://github.com/apple/swift-atomics.git
+    from: 1.2.0
+targets:
+  metronome:
+    type: application
+    platform: macOS
+    sources:
+      - metronome
+    dependencies:
+      - package: Atomics
+        product: Atomics
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mongmeo.metronome
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+        ENABLE_HARDENED_RUNTIME: YES
+  metronomeTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - metronomeTests
+    dependencies:
+      - target: metronome
+      - package: Atomics
+        product: Atomics
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.mongmeo.metronomeTests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  metronome:
+    build:
+      targets:
+        metronome: all
+        metronomeTests: [test]
+    test:
+      targets:
+        - metronomeTests
+```
 
-- [ ] **Step 2: swift-atomics 패키지 추가**
+- [ ] **Step 2: 앱 소스 파일 작성 (placeholder)**
 
-Xcode > File > Add Package Dependencies에서 `https://github.com/apple/swift-atomics.git`를 추가하고 (Up to Next Major, 1.2.0 이상), `Atomics` 라이브러리를 `metronome` 타겟에 링크한다.
+```swift
+// metronome/App/MetronomeApp.swift
+import SwiftUI
+
+@main
+struct MetronomeApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+```swift
+// metronome/App/ContentView.swift
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        Text("Metronome")
+            .padding()
+    }
+}
+```
 
 - [ ] **Step 3: 스모크 테스트 작성**
 
@@ -61,16 +137,26 @@ final class SmokeTests: XCTestCase {
 }
 ```
 
-- [ ] **Step 4: 빌드 및 테스트 실행**
+- [ ] **Step 4: 프로젝트 생성, 빌드 및 테스트 실행**
 
-Run: `xcodebuild -project metronome.xcodeproj -scheme metronome -destination 'platform=macOS' test`
+Run:
+```bash
+xcodegen generate
+xcodebuild -project metronome.xcodeproj -scheme metronome -destination 'platform=macOS' test
+```
 Expected: BUILD SUCCEEDED, `test_atomicsIsLinked` PASS
 
-- [ ] **Step 5: 커밋**
+- [ ] **Step 5: .gitignore 갱신 및 커밋**
+
+`.gitignore`에 다음 줄을 추가한다:
+```
+metronome.xcodeproj
+*.xcworkspace
+```
 
 ```bash
-git add metronome.xcodeproj metronome metronomeTests
-git commit -m "chore: Xcode 프로젝트 스캐폴딩 및 swift-atomics 의존성 추가"
+git add project.yml metronome metronomeTests .gitignore
+git commit -m "chore: XcodeGen 프로젝트 스캐폴딩 및 swift-atomics 의존성 추가"
 ```
 
 ---
