@@ -26,4 +26,9 @@ enum AccentLevel: Int, CaseIterable {
         case .strong: return 1600
         }
     }
+
+    /// 다음 강세 레벨로 순환합니다(강박 다음은 무음으로 랩어라운드).
+    var next: AccentLevel {
+        AccentLevel(rawValue: (rawValue + 1) % 4)!
+    }
 }
