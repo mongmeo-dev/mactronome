@@ -19,12 +19,14 @@ final class MetronomeState: ObservableObject {
     }
     /// 분모: "2"/"4"/"8"/"16"
     @Published var denom: String = "4"
-    /// BPM (30...300 클램프)
-    @Published var bpm: Double = 120 {
+    /// BPM (30...300 클램프). 기본값은 디자인 목업과 동일한 132.
+    @Published var bpm: Double = 132 {
         didSet { engine.updateBPM(bpm) }
     }
     /// 재생 상태
     @Published private(set) var isPlaying: Bool = false
+    /// 마지막 오디오 시작 실패 메시지입니다(성공 시 nil).
+    @Published var lastError: String?
 
     let engine: MetronomeEngine
 
@@ -80,7 +82,12 @@ final class MetronomeState: ObservableObject {
         if engine.isRunning {
             engine.stop()
         } else {
-            try? engine.start()
+            do {
+                try engine.start()
+                lastError = nil
+            } catch {
+                lastError = error.localizedDescription
+            }
         }
         isPlaying = engine.isRunning
     }

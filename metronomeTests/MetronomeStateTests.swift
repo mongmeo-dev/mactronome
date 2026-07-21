@@ -8,9 +8,9 @@ final class MetronomeStateTests: XCTestCase {
         XCTAssertEqual(state.grid, [[.strong], [.weak], [.medium], [.weak]])
     }
 
-    func test_defaultBPM_is120() {
+    func test_defaultBPM_is132() {
         let state = MetronomeState()
-        XCTAssertEqual(state.bpm, 120)
+        XCTAssertEqual(state.bpm, 132)
     }
 
     func test_setBPM_clampsToLowerBound() {
