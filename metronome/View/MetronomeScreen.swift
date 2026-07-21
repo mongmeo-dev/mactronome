@@ -9,6 +9,11 @@ struct MetronomeScreen: View {
 
     @EnvironmentObject private var state: MetronomeState
 
+    /// 재생 중 현재 울리는 박자 인덱스입니다. 정지 상태에서는 nil.
+    @State private var activeBeat: Int?
+    /// 마지막으로 관측한 박자 스냅샷의 sequence. 변경 감지에 사용합니다.
+    @State private var lastSequence: UInt64 = 0
+
     private var beatCount: Int { state.grid.count }
 
     // MARK: - Body
@@ -20,6 +25,35 @@ struct MetronomeScreen: View {
         }
         .frame(width: Theme.Layout.windowWidth)
         .background(Theme.Colors.bg)
+        .background(beatPoller)
+        .onChange(of: state.isPlaying) { _, playing in
+            // 정지 시 활성 강조를 즉시 해제합니다.
+            if !playing { activeBeat = nil }
+        }
+    }
+
+    // MARK: - Beat poller (오디오 스레드 → UI 활성 비트 배선)
+
+    /// 재생 중 ~60Hz 로 락프리 `beatChannel.latest()` 를 폴링해 활성 비트를 갱신합니다.
+    /// 렌더 콜백/오디오 스레드로는 절대 진입하지 않고, 메인 스레드에서 atomic load만 읽습니다.
+    /// 보이지 않는 배경 뷰로 배치해 레이아웃에 영향을 주지 않습니다.
+    @ViewBuilder
+    private var beatPoller: some View {
+        if state.isPlaying {
+            TimelineView(.animation) { _ in
+                Color.clear
+                    .onChange(of: pollSequence()) { _, _ in
+                        let snapshot = state.engine.beatChannel.latest()
+                        lastSequence = snapshot.sequence
+                        activeBeat = snapshot.beatIndex
+                    }
+            }
+        }
+    }
+
+    /// 타임라인 틱마다 최신 sequence 를 읽어 반환합니다(onChange 트리거용).
+    private func pollSequence() -> UInt64 {
+        state.engine.beatChannel.latest().sequence
     }
 
     // MARK: - Title bar (신호등 + 제목)
@@ -58,10 +92,14 @@ struct MetronomeScreen: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 1. 악센트 바 — 탭 시 state.grid 를 통해 강세를 순환합니다.
-            AccentBarsView(grid: $state.grid)
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 22)
+            // 1. 악센트 바 — 탭은 state.cycleCell 로 라우팅, 재생 중 활성 비트를 강조합니다.
+            AccentBarsView(
+                grid: state.grid,
+                activeBeat: activeBeat,
+                onCycle: { beat, pulse in state.cycleCell(beat: beat, pulse: pulse) }
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 22)
 
             // 2. BPM 리드아웃
             bpmReadout
