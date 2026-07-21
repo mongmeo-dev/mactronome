@@ -7,5 +7,6 @@ struct MetronomeApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentSize)
     }
 }
