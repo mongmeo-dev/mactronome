@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<style>
+:root{--bg:#fafaf9;--panel:#f1f0ed;--ink:#1c1b19;--mut:rgba(28,27,25,.5);--mut2:rgba(28,27,25,.35);--bd:rgba(28,27,25,.09);--acc:oklch(0.56 0.035 255);--acc-soft:oklch(0.56 0.035 255 / .12);}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#e9e7e2;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.win{width:452px;background:var(--bg);border-radius:12px;overflow:hidden;box-shadow:0 22px 55px -18px rgba(0,0,0,.4),0 3px 12px rgba(0,0,0,.12);border:.5px solid rgba(0,0,0,.14)}
+.tbar{display:flex;align-items:center;height:40px;padding:0 15px;gap:8px;background:linear-gradient(#f3f2ef,#eceae6);border-bottom:.5px solid var(--bd)}
+.lights{display:flex;gap:8px}
+.lt{width:12px;height:12px;border-radius:50%}
+.ttl{flex:1;text-align:center;font:500 13px/1 system-ui;color:var(--mut);letter-spacing:.01em;margin-left:-52px}
+.rbtn{width:38px;height:38px;border-radius:9px;background:#fff;border:.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font:400 20px/1 system-ui;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
+.play{width:58px;height:58px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -4px var(--acc-soft),0 2px 5px rgba(0,0,0,.12)}
+.play svg{fill:#fff}
+.tap{padding:0 18px;height:38px;border-radius:9px;background:#fff;border:1.5px solid var(--acc);display:flex;align-items:center;font:700 12.5px/1 system-ui;color:var(--acc);letter-spacing:.06em;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.chip{padding:9px 0;border-radius:9px;background:var(--panel);font:600 14px system-ui;color:var(--mut);text-align:center;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s}
+.chip.chipOn{background:#fff;color:var(--ink);border-color:var(--acc);box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.subchip{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 0 8px;border-radius:9px;background:var(--panel);cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s}
+.subchip .sym{font-size:19px;line-height:1;color:var(--ink)}
+.subchip .nm{font:500 10px system-ui;color:var(--mut2)}
+.subchip.chipOn{background:#fff;border-color:var(--acc);box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.subchip.chipOn .nm{color:var(--ink)}
+.stepper{display:flex;align-items:center;gap:8px}
+</style>
+</helmet>
+<div class="win">
+  <div class="tbar"><div class="lights"><span class="lt" style="background:#ff5f57"></span><span class="lt" style="background:#febc2e"></span><span class="lt" style="background:#28c840"></span></div><div class="ttl">Metronome</div></div>
+  <div style="padding:24px 30px 28px">
+    <div style="display:flex;gap:16px;justify-content:center;align-items:flex-end;margin-bottom:22px;min-height:64px;flex-wrap:wrap">
+      <sc-for list="{{ gridGroups }}" as="group" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;align-items:center;user-select:none">
+          <div style="height:64px;display:flex;align-items:flex-end;gap:4px;margin-bottom:9px">
+            <sc-for list="{{ group.cells }}" as="cell" hint-placeholder-count="1"><div onClick="{{ cell.onClick }}" style="width:{{ cell.w }};border-radius:6px;cursor:pointer;height:{{ cell.h }};background:{{ cell.bg }};border:{{ cell.bd }};transition:height .18s ease,background .18s ease,border-color .18s ease"></div></sc-for>
+          </div>
+          <div class="mono" style="font-size:11px;color:var(--mut);font-weight:600">{{ group.num }}</div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:6px">
+      <div class="rbtn" style="width:34px;height:34px">−</div>
+      <div class="mono" style="font-size:66px;font-weight:600;line-height:.9;letter-spacing:-.03em;color:var(--ink)">132</div>
+      <div class="rbtn" style="width:34px;height:34px">+</div>
+    </div>
+    <div style="text-align:center;font:400 12px/1 system-ui;color:var(--mut2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:24px">Allegro · BPM</div>
+
+    <div style="font:600 12px system-ui;color:var(--mut);letter-spacing:.02em;margin-bottom:10px">박자표</div>
+    <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:var(--panel);border-radius:11px;margin-bottom:22px">
+      <div class="mono" style="display:flex;flex-direction:column;align-items:center;line-height:.92;color:var(--ink);font-weight:600;min-width:34px"><span style="font-size:26px">{{ beatCount }}</span><span style="width:24px;height:2px;background:var(--ink);margin:3px 0;border-radius:2px"></span><span style="font-size:26px">{{ denomSel }}</span></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:9px;align-items:flex-end">
+        <div class="stepper"><div class="rbtn" style="width:28px;height:28px;font-size:16px;background:var(--bg)" onClick="{{ removeBeat }}">−</div><span class="mono" style="font-size:15px;min-width:20px;text-align:center;color:var(--ink);font-weight:600">{{ beatCount }}</span><div class="rbtn" style="width:28px;height:28px;font-size:16px;background:var(--bg)" onClick="{{ addBeat }}">+</div></div>
+        <div style="display:grid;grid-template-columns:repeat(4,30px);gap:6px"><sc-for list="{{ denomChips }}" as="d" hint-placeholder-count="4"><div class="chip {{ d.cls }}" style="padding:6px 0;font-size:12.5px" onClick="{{ d.onClick }}">{{ d.v }}</div></sc-for></div>
+      </div>
+    </div>
+
+    <div style="font:600 12px system-ui;color:var(--mut);letter-spacing:.02em;margin-bottom:10px">분할</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:22px">
+      <sc-for list="{{ subChips }}" as="sub" hint-placeholder-count="6"><div class="subchip {{ sub.cls }}" onClick="{{ sub.onClick }}"><span class="sym">{{ sub.s }}</span><span class="nm">{{ sub.n }}</span></div></sc-for>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:var(--panel);border-radius:10px;margin-bottom:18px"><span style="font:500 12.5px system-ui;color:var(--mut)">사운드</span><span class="mono" style="font-size:12px;color:var(--ink)">Wood Block ⌄</span></div>
+    <div style="display:flex;gap:12px">
+      <div class="play" style="flex:1;width:auto;height:46px;border-radius:10px;gap:9px"><svg width="15" height="17" viewBox="0 0 20 22"><path d="M0 0l20 11L0 22z"/></svg><span style="color:#fff;font:600 13px system-ui;letter-spacing:.03em">시작</span></div>
+      <div class="tap mono">TAP</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { denom: '4', subIdx: 0, grid: [[3], [1], [2], [1]] };
+  renderVals() {
+    // main-beat accent bar heights/styles by level (0=mute,1=weak,2=medium,3=strong)
+    const map = {
+      0: { h: '12px', bg: 'transparent', bd: '1.5px dashed var(--mut2)' },
+      1: { h: '26px', bg: 'transparent', bd: '1.5px solid rgba(28,27,25,.28)' },
+      2: { h: '44px', bg: 'var(--acc-soft)', bd: '1.5px solid var(--acc)' },
+      3: { h: '60px', bg: 'var(--ink)', bd: '1.5px solid var(--ink)' }
+    };
+    // subdivision (small) bar styles — shorter than the main bars
+    const subLevelMap = {
+      0: { h: '10px', bg: 'transparent', bd: '1.5px dashed var(--mut2)' },
+      1: { h: '18px', bg: 'transparent', bd: '1.5px solid rgba(28,27,25,.28)' },
+      2: { h: '30px', bg: 'var(--acc-soft)', bd: '1.5px solid var(--acc)' },
+      3: { h: '40px', bg: 'var(--ink)', bd: '1.5px solid var(--ink)' }
+    };
+    const subRich = [
+      { s: '♩', n: '4분음표' }, { s: '♪', n: '8분음표' }, { s: '♬', n: '16분음표' },
+      { s: '3', n: '셋잇단' }, { s: '6', n: '6잇단' }, { s: '♩.', n: '점4분' }
+    ];
+    const subCounts = [1, 2, 4, 3, 6, 1]; // pulses per beat, indexed by subIdx
+
+    // click any bar (main or subdivision) to cycle its accent level
+    const cellClick = (b, s) => this.setState(st => {
+      const g = st.grid.map(r => [...r]);
+      g[b][s] = (g[b][s] + 1) % 4;
+      return { grid: g };
+    });
+    const gridGroups = this.state.grid.map((row, b) => ({
+      num: b + 1,
+      cells: row.map((lv, s) => {
+        const m = s === 0 ? map : subLevelMap;
+        return { ...m[lv], w: s === 0 ? '28px' : '11px', onClick: () => cellClick(b, s) };
+      })
+    }));
+
+    const denomChips = ['2', '4', '8', '16'].map(v => ({
+      v,
+      cls: this.state.denom === v ? 'chipOn' : '',
+      onClick: () => this.setState({ denom: v })
+    }));
+
+    // changing subdivision re-sizes every beat row to the new pulse count
+    const setSub = (i) => this.setState(st => {
+      const sc = subCounts[i];
+      const g = st.grid.map(r => {
+        const nr = r.slice(0, sc);
+        while (nr.length < sc) nr.push(1);
+        return nr;
+      });
+      return { subIdx: i, grid: g };
+    });
+    const subChips = subRich.map((o, i) => ({
+      s: o.s, n: o.n,
+      cls: this.state.subIdx === i ? 'chipOn' : '',
+      onClick: () => setSub(i)
+    }));
+
+    // beat count (numerator) stepper — adds/removes a beat row
+    const addBeat = () => this.setState(st => {
+      if (st.grid.length >= 12) return {};
+      const w = subCounts[st.subIdx] || 1;
+      return { grid: [...st.grid, Array.from({ length: w }, () => 1)] };
+    });
+    const removeBeat = () => this.setState(st => st.grid.length <= 1 ? {} : { grid: st.grid.slice(0, -1) });
+
+    return {
+      gridGroups, denomChips, subChips, addBeat, removeBeat,
+      beatCount: this.state.grid.length,
+      denomSel: this.state.denom
+    };
+  }
+}
+</script>
+</body>
+</html>
