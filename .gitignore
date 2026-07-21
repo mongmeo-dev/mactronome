@@ -10,3 +10,6 @@
 .superpowers
 
 .env
+
+metronome.xcodeproj
+*.xcworkspace
