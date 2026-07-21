@@ -28,4 +28,17 @@ struct ClickSynth {
         let normal = makeClick(sampleRate: sampleRate, frequency: 1000, durationSeconds: 0.02)
         return ClickBuffers(accent: accent, normal: normal)
     }
+
+    /// 강세 레벨 0~3의 클릭 버퍼 배열을 생성합니다. 레벨 0(mute)은 무음입니다.
+    static func makeLevelBuffers(sampleRate: Double) -> [[Float]] {
+        return AccentLevel.allCases.map { level in
+            guard level.gain > 0 else {
+                // 무음: duration만큼 0으로 채운 버퍼
+                let count = Int(sampleRate * 0.02)
+                return [Float](repeating: 0, count: count)
+            }
+            let base = makeClick(sampleRate: sampleRate, frequency: level.frequency, durationSeconds: 0.02)
+            return base.map { $0 * level.gain }
+        }
+    }
 }
