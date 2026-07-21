@@ -58,12 +58,12 @@ final class MetronomeState: ObservableObject {
     /// 분할 변경 시 모든 행을 새 펄스 수로 리사이즈(slice / pad with weak).
     func setSubdivision(_ i: Int) {
         let count = Self.subCounts[i]
+        subIdx = i
         grid = grid.map { row in
             var newRow = Array(row.prefix(count))
             while newRow.count < count { newRow.append(.weak) }
             return newRow
         }
-        subIdx = i
     }
 
     func setDenom(_ d: String) {
