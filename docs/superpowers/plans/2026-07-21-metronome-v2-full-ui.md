@@ -283,16 +283,17 @@ final class PulseGridChannel {
     }
 
     /// UI 스레드에서 호출됩니다. 비활성 슬롯에 쓰고 인덱스를 스왑합니다.
+    /// 주의: swift-atomics의 ordering 멤버는 .releasing/.acquiring 입니다(.release/.acquire 아님).
     func publish(_ plan: PulsePlan) {
         let active = activeIndex.load(ordering: .relaxed)
         let inactive = 1 - active
         slots[inactive] = plan
-        activeIndex.store(inactive, ordering: .release)
+        activeIndex.store(inactive, ordering: .releasing)
     }
 
     /// 오디오 스레드에서 호출됩니다. 현재 활성 슬롯을 반환합니다(할당 없음).
     func current() -> PulsePlan {
-        let active = activeIndex.load(ordering: .acquire)
+        let active = activeIndex.load(ordering: .acquiring)
         return slots[active]
     }
 }
