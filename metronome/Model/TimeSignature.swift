@@ -17,6 +17,13 @@ struct TimeSignature: Equatable {
     static let sixEight = TimeSignature(beatsPerBar: 6, noteValue: 8)
 
     static let presets: [TimeSignature] = [twoFour, threeFour, fourFour, sixEight]
+
+    static let noteValues: [Int] = [2, 4, 8, 16]
+
+    /// 분모만 바꾼 새 값을 반환합니다.
+    func withNoteValue(_ value: Int) -> TimeSignature {
+        TimeSignature(beatsPerBar: beatsPerBar, noteValue: value)
+    }
 }
 
 extension TimeSignature {

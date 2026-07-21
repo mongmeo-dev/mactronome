@@ -20,4 +20,13 @@ final class TimeSignatureTests: XCTestCase {
         // 인덱스는 항상 0..<beatsPerBar 범위로 스케줄러가 전달한다.
         XCTAssertTrue(ts.isAccent(beatIndex: 0))
     }
+
+    func test_noteValues_areStandardDenominators() {
+        XCTAssertEqual(TimeSignature.noteValues, [2, 4, 8, 16])
+    }
+    func test_withNoteValue_changesDenominatorOnly() {
+        let ts = TimeSignature(beatsPerBar: 4, noteValue: 4).withNoteValue(8)
+        XCTAssertEqual(ts.beatsPerBar, 4)
+        XCTAssertEqual(ts.noteValue, 8)
+    }
 }
