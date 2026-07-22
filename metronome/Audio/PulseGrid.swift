@@ -26,6 +26,17 @@ struct PulsePlan {
     }
 
     static let `default` = PulsePlan(grid: [[3],[1],[2],[1]], pulsesPerBeat: 1)
+
+    /// 주어진 beat의 첫 펄스 인덱스를 반환합니다. 해당 beat가 없으면 0(마디 처음)으로 감쌉니다.
+    func firstPulseIndex(ofBeat beat: Int) -> Int {
+        for (i, b) in beatBoundaries.enumerated() where b == beat {
+            return i
+        }
+        return 0
+    }
+
+    /// grid에 존재하는 마지막 beat 인덱스입니다(빈 grid면 0).
+    var lastBeat: Int { beatBoundaries.last ?? 0 }
 }
 
 /// 락프리 SPSC 더블 버퍼로 PulsePlan을 UI→오디오 전달합니다.
