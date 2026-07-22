@@ -9,8 +9,8 @@ struct MetronomeScreen: View {
 
     @EnvironmentObject private var state: MetronomeState
 
-    /// 재생 중 현재 울리는 박자 인덱스입니다. 정지 상태에서는 nil.
-    @State private var activeBeat: Int?
+    /// 재생 중 현재 울리는 (박, 펄스) 인덱스입니다. 정지 상태에서는 nil.
+    @State private var activePulse: (beat: Int, pulse: Int)?
     /// 마지막으로 관측한 박자 스냅샷의 sequence. 변경 감지에 사용합니다.
     @State private var lastSequence: UInt64 = 0
 
@@ -28,7 +28,7 @@ struct MetronomeScreen: View {
         .background(beatPoller)
         .onChange(of: state.isPlaying) { _, playing in
             // 정지 시 활성 강조를 즉시 해제합니다.
-            if !playing { activeBeat = nil }
+            if !playing { activePulse = nil }
         }
     }
 
@@ -45,7 +45,7 @@ struct MetronomeScreen: View {
                     .onChange(of: pollSequence()) { _, _ in
                         let snapshot = state.engine.beatChannel.latest()
                         lastSequence = snapshot.sequence
-                        activeBeat = snapshot.beatIndex
+                        activePulse = (beat: snapshot.beatIndex, pulse: snapshot.pulseIndex)
                     }
             }
         }
@@ -95,7 +95,7 @@ struct MetronomeScreen: View {
             // 1. 악센트 바 — 탭은 state.cycleCell 로 라우팅, 재생 중 활성 비트를 강조합니다.
             AccentBarsView(
                 grid: state.grid,
-                activeBeat: activeBeat,
+                activePulse: activePulse,
                 onCycle: { beat, pulse in state.cycleCell(beat: beat, pulse: pulse) }
             )
             .frame(maxWidth: .infinity)
