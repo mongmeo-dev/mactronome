@@ -117,7 +117,7 @@ final class MetronomeEngine {
             if tick.didFire {
                 playbackIndex = 0
                 playingLevel = tick.level
-                beatChannel.publish(beatIndex: tick.beatIndex, isAccent: tick.level == 3)
+                beatChannel.publish(beatIndex: tick.beatIndex, pulseIndex: tick.pulseIndex, isAccent: tick.level == 3)
             }
             var sample: Float = 0
             if playbackIndex >= 0, playingLevel >= 0, playingLevel < levelBuffers.count {
