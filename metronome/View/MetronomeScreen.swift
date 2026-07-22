@@ -13,6 +13,12 @@ struct MetronomeScreen: View {
     @State private var activePulse: (beat: Int, pulse: Int)?
     /// 마지막으로 관측한 박자 스냅샷의 sequence. 변경 감지에 사용합니다.
     @State private var lastSequence: UInt64 = 0
+    /// 방향키 BPM 조절을 위한 키보드 포커스입니다. 창 활성 시 항상 잡아 둡니다.
+    @FocusState private var keyboardFocused: Bool
+
+    /// 방향키 1회 입력당 BPM 증감량입니다. 상하 = 10, 좌우 = 1.
+    private static let bpmStepCoarse: Double = 10
+    private static let bpmStepFine: Double = 1
 
     private var beatCount: Int { state.grid.count }
 
@@ -30,6 +36,23 @@ struct MetronomeScreen: View {
             // 정지 시 활성 강조를 즉시 해제합니다.
             if !playing { activePulse = nil }
         }
+        // 방향키로 BPM을 조절합니다(상하 ±10, 좌우 ±1).
+        // 루트를 focusable로 만들고 등장 시 자동 포커스해, 창이 활성인 한 어디를 클릭했든 방향키가 먹습니다.
+        .focusable()
+        .focusEffectDisabled()
+        .focused($keyboardFocused)
+        .onAppear { keyboardFocused = true }
+        .onKeyPress(.upArrow) { adjustBPM(by: Self.bpmStepCoarse) }
+        .onKeyPress(.downArrow) { adjustBPM(by: -Self.bpmStepCoarse) }
+        .onKeyPress(.rightArrow) { adjustBPM(by: Self.bpmStepFine) }
+        .onKeyPress(.leftArrow) { adjustBPM(by: -Self.bpmStepFine) }
+    }
+
+    /// BPM을 delta만큼 조절합니다. 클램프는 state.setBPM이 담당합니다.
+    /// 방향키 입력을 소비했음을 알리기 위해 `.handled`를 반환합니다.
+    private func adjustBPM(by delta: Double) -> KeyPress.Result {
+        state.setBPM(state.bpm + delta)
+        return .handled
     }
 
     // MARK: - Beat poller (오디오 스레드 → UI 활성 비트 배선)
