@@ -38,6 +38,7 @@ final class MetronomeState: ObservableObject {
         self.engine = engine
         propagateGrid()
         engine.updateBPM(bpm)
+        engine.prewarm()
     }
 
     /// 셀 강세를 다음 레벨로 순환합니다.
