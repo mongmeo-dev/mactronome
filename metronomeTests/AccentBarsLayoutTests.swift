@@ -58,4 +58,44 @@ final class AccentBarsLayoutTests: XCTestCase {
     func test_zeroBeats_neverOverflows() {
         XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 0, pulses: 6))
     }
+
+    // MARK: - rowCount
+
+    /// 한 줄에 들어가는 배치는 항상 1줄입니다.
+    func test_rowCount_fitsSingleRow() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 4, pulses: 1), 1)
+    }
+
+    /// 6잇단 4박자는 넘쳐서 그룹 2개씩 → 2줄이 됩니다.
+    func test_rowCount_sextupletFourBeats_twoRows() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 4, pulses: 6), 2)
+    }
+
+    /// 6잇단 5박자는 그룹 2개씩 끊으면 3줄(2+2+1)입니다.
+    func test_rowCount_sextupletFiveBeats_threeRows() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 5, pulses: 6), 3)
+    }
+
+    /// 박자 0개는 줄이 없습니다.
+    func test_rowCount_zeroBeats() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 0, pulses: 6), 0)
+    }
+
+    // MARK: - contentHeight
+
+    /// 한 줄 높이 = 바컨테이너(64) + 간격(9) + 라벨(14) = 87.
+    func test_contentHeight_singleRow() {
+        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 4, pulses: 1),
+                       87, accuracy: 0.001)
+    }
+
+    /// 여러 줄이면 창이 늘어나야 하므로 한 줄보다 높이가 커야 합니다.
+    /// 2줄 = 87×2 + groupSpacing(16) = 190.
+    func test_contentHeight_twoRows_isTaller() {
+        let single = AccentBarsView.contentHeight(beatCount: 2, pulses: 6)
+        let wrapped = AccentBarsView.contentHeight(beatCount: 4, pulses: 6)
+        XCTAssertEqual(single, 87, accuracy: 0.001)
+        XCTAssertEqual(wrapped, 190, accuracy: 0.001)
+        XCTAssertGreaterThan(wrapped, single)
+    }
 }

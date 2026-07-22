@@ -27,6 +27,21 @@ struct AccentBarsView: View {
     static let groupSpacing: CGFloat = 16
     /// 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
     static let availableWidth: CGFloat = 392
+    /// 줄바꿈 시 한 줄에 놓는 박자 그룹 개수.
+    static let groupsPerWrappedRow: Int = 2
+
+    // MARK: - 높이 계산 상수 (한 줄이 실제로 차지하는 세로 크기)
+
+    /// 바 컨테이너 고정 높이(beatGroup 내부 `.frame(height: 64)`와 일치).
+    static let barContainerHeight: CGFloat = 64
+    /// 바 컨테이너와 박자 번호 텍스트 사이 간격(beatGroup VStack spacing 9와 일치).
+    static let beatGroupSpacing: CGFloat = 9
+    /// 박자 번호 텍스트 높이(11pt semibold 한 줄, line height 근사).
+    static let beatLabelHeight: CGFloat = 14
+
+    /// 박자 그룹 한 줄(바 컨테이너 + 간격 + 번호)의 세로 높이.
+    static let singleGroupRowHeight: CGFloat =
+        barContainerHeight + beatGroupSpacing + beatLabelHeight
 
     /// 펄스 수(= 한 박자 그룹의 바 개수)로부터 그룹 하나의 실제 폭을 계산합니다.
     static func groupWidth(pulses: Int) -> CGFloat {
@@ -50,6 +65,30 @@ struct AccentBarsView: View {
         Self.overflowsSingleRow(beatCount: grid.count, pulses: grid.first?.count ?? 0)
     }
 
+    /// 실제 렌더될 박자 그룹 "줄" 수를 계산합니다.
+    /// 한 줄에 들어가면 1, 넘치면 그룹을 `groupsPerWrappedRow`개씩 끊어 올림 계산합니다.
+    /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
+    static func rowCount(beatCount: Int, pulses: Int) -> Int {
+        guard beatCount > 0 else { return 0 }
+        guard overflowsSingleRow(beatCount: beatCount, pulses: pulses) else { return 1 }
+        return (beatCount + groupsPerWrappedRow - 1) / groupsPerWrappedRow
+    }
+
+    /// 악센트 바 영역이 실제로 필요로 하는 세로 높이입니다.
+    /// `.windowResizability(.contentSize)` 환경에서 창이 여러 줄 높이를 정확히
+    /// 반영하도록, 이상적 높이를 명시하는 데 사용합니다.
+    static func contentHeight(beatCount: Int, pulses: Int) -> CGFloat {
+        let rows = rowCount(beatCount: beatCount, pulses: pulses)
+        guard rows > 0 else { return singleGroupRowHeight }
+        return singleGroupRowHeight * CGFloat(rows)
+            + groupSpacing * CGFloat(rows - 1)
+    }
+
+    /// 현재 grid 기준 콘텐츠 높이입니다.
+    private var contentHeight: CGFloat {
+        Self.contentHeight(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+    }
+
     var body: some View {
         Group {
             if overflowsSingleRow {
@@ -58,7 +97,9 @@ struct AccentBarsView: View {
                 singleRow
             }
         }
-        .frame(minHeight: 64)
+        // 이상적 높이를 계산값으로 고정해, .contentSize 창이 여러 줄 높이를
+        // 정확히 반영하도록 합니다(줄바꿈 시 잘림/겹침 방지).
+        .frame(height: contentHeight)
     }
 
     /// 한 줄 배치(기존 동작). 모든 그룹이 가용 폭 안에 들어갈 때 사용합니다.
