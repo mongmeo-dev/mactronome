@@ -23,6 +23,14 @@ final class MetronomeEngine {
     /// true일 때만 스케줄러가 전진하며 클릭을 발화합니다.
     private let gateOpen = ManagedAtomic<Bool>(false)
 
+    /// 게이트가 닫힌 동안에도 출력하는 극미세 킵얼라이브 신호의 진폭입니다.
+    /// 약 -140 dBFS로 정상 볼륨에서 들리지 않으며, 대부분의 출력에서 양자화되면
+    /// 0에 수렴합니다. 완전 무음(0)이 이어지면 일부 macOS 출력 장치가 아날로그
+    /// 단(DAC/앰프)을 절전시켰다가 첫 클릭에서 깨어나며 지연을 유발하는데,
+    /// 이 신호로 하드웨어를 항상 "따뜻하게" 유지해 첫 클릭 지연을 제거합니다.
+    private static let keepAliveAmplitude: Float = 1e-7
+    private var keepAlivePhase: Float = 1
+
     /// 재생(발화) 중인지 여부입니다. 엔진 자체의 구동 상태와 분리되어 있습니다.
     var isRunning: Bool { gateOpen.load(ordering: .relaxed) }
 
@@ -60,7 +68,10 @@ final class MetronomeEngine {
         try ensureEngineRunning()
         scheduler.reset()
         playbackIndex = -1
-        gateOpen.store(true, ordering: .relaxed)
+        // `.releasing`으로 저장하여 위의 reset()·playbackIndex 쓰기가 게이트 오픈보다
+        // 먼저 오디오 스레드에 가시화되도록 합니다(render의 `.acquiring` 로드와 짝).
+        // 정지→재생 반복 시 첫 발화가 이전 재생의 잔여 상태로 밀리는 것을 방지합니다.
+        gateOpen.store(true, ordering: .releasing)
     }
 
     /// 재생을 정지합니다. 엔진은 계속 상시 가동하며 발화 게이트만 닫습니다.
@@ -89,10 +100,15 @@ final class MetronomeEngine {
         let ablPointer = UnsafeMutableAudioBufferListPointer(abl)
         guard let out = ablPointer.first?.mData?.assumingMemoryBound(to: Float.self) else { return noErr }
 
-        // 게이트가 닫혀 있으면 스케줄러를 전진시키지 않고 무음을 출력합니다.
-        // 엔진은 계속 돌지만 소리는 나지 않습니다.
-        if !gateOpen.load(ordering: .relaxed) {
-            for frame in 0..<Int(frameCount) { out[frame] = 0 }
+        // 게이트가 닫혀 있으면 스케줄러를 전진시키지 않고 극미세 킵얼라이브 신호만
+        // 출력합니다(들리지 않음). 하드웨어 아날로그 단을 계속 깨어있게 유지해
+        // 첫 클릭 지연을 막습니다. `.acquiring`으로 로드하여, 게이트를 연 스레드의
+        // reset() 쓰기가 첫 발화 전에 반드시 가시화되도록 보장합니다.
+        if !gateOpen.load(ordering: .acquiring) {
+            for frame in 0..<Int(frameCount) {
+                keepAlivePhase = -keepAlivePhase
+                out[frame] = Self.keepAliveAmplitude * keepAlivePhase
+            }
             return noErr
         }
 
