@@ -13,13 +13,78 @@ struct AccentBarsView: View {
     /// 바 탭을 모델(`cycleCell`)로 라우팅하는 클로저입니다.
     let onCycle: (Int, Int) -> Void
 
+    // MARK: - Layout 상수 (폭 계산과 바 렌더가 공유하는 단일 소스)
+
+    /// 메인 바 폭.
+    static let mainBarWidth: CGFloat = 28
+    /// 서브 바 폭.
+    static let subBarWidth: CGFloat = 11
+    /// 박자 그룹 내 바 사이 간격.
+    static let barSpacing: CGFloat = 4
+    /// 박자 그룹 좌우 padding 합(각 6).
+    static let groupHorizontalPadding: CGFloat = 12
+    /// 박자 그룹 사이 간격.
+    static let groupSpacing: CGFloat = 16
+    /// 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
+    static let availableWidth: CGFloat = 392
+
+    /// 펄스 수(= 한 박자 그룹의 바 개수)로부터 그룹 하나의 실제 폭을 계산합니다.
+    static func groupWidth(pulses: Int) -> CGFloat {
+        guard pulses > 0 else { return groupHorizontalPadding }
+        let bars = mainBarWidth + subBarWidth * CGFloat(pulses - 1)
+        let gaps = barSpacing * CGFloat(pulses - 1)
+        return bars + gaps + groupHorizontalPadding
+    }
+
+    /// 박자 수/펄스 수만으로, 모든 박자 그룹을 한 줄에 놓으면 가용 폭을 넘는지 판단합니다.
+    /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
+    static func overflowsSingleRow(beatCount: Int, pulses: Int) -> Bool {
+        guard beatCount > 0 else { return false }
+        let total = groupWidth(pulses: pulses) * CGFloat(beatCount)
+            + groupSpacing * CGFloat(beatCount - 1)
+        return total > availableWidth
+    }
+
+    /// 현재 grid 기준으로 한 줄 배치가 넘치는지 판단합니다.
+    private var overflowsSingleRow: Bool {
+        Self.overflowsSingleRow(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+    }
+
     var body: some View {
-        HStack(alignment: .bottom, spacing: 16) {
+        Group {
+            if overflowsSingleRow {
+                wrappedRows
+            } else {
+                singleRow
+            }
+        }
+        .frame(minHeight: 64)
+    }
+
+    /// 한 줄 배치(기존 동작). 모든 그룹이 가용 폭 안에 들어갈 때 사용합니다.
+    private var singleRow: some View {
+        HStack(alignment: .bottom, spacing: Self.groupSpacing) {
             ForEach(Array(grid.enumerated()), id: \.offset) { beatIndex, row in
                 beatGroup(beatIndex: beatIndex, row: row)
             }
         }
-        .frame(minHeight: 64)
+    }
+
+    /// 넘칠 때: 박자 그룹을 한 줄에 2개씩 끊어 여러 줄로 배치합니다.
+    private var wrappedRows: some View {
+        let indexedRows = Array(grid.enumerated())
+        let chunks = stride(from: 0, to: indexedRows.count, by: 2).map { start in
+            Array(indexedRows[start..<min(start + 2, indexedRows.count)])
+        }
+        return VStack(alignment: .center, spacing: Self.groupSpacing) {
+            ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
+                HStack(alignment: .bottom, spacing: Self.groupSpacing) {
+                    ForEach(chunk, id: \.offset) { beatIndex, row in
+                        beatGroup(beatIndex: beatIndex, row: row)
+                    }
+                }
+            }
+        }
     }
 
     private func beatGroup(beatIndex: Int, row: [AccentLevel]) -> some View {
@@ -27,7 +92,7 @@ struct AccentBarsView: View {
 
         return VStack(spacing: 9) {
             // 바 컨테이너: 아래 정렬, 고정 높이 64
-            HStack(alignment: .bottom, spacing: 4) {
+            HStack(alignment: .bottom, spacing: Self.barSpacing) {
                 ForEach(Array(row.enumerated()), id: \.offset) { pulseIndex, level in
                     bar(level: level, isMain: pulseIndex == 0) {
                         onCycle(beatIndex, pulseIndex)
@@ -53,7 +118,7 @@ struct AccentBarsView: View {
 
     @ViewBuilder
     private func bar(level: AccentLevel, isMain: Bool, onTap: @escaping () -> Void) -> some View {
-        let width: CGFloat = isMain ? 28 : 11
+        let width: CGFloat = isMain ? Self.mainBarWidth : Self.subBarWidth
         let height = isMain ? level.mainHeight : level.subHeight
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.bar, style: .continuous)
 
