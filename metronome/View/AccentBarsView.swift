@@ -8,8 +8,8 @@ import SwiftUI
 struct AccentBarsView: View {
     /// 박자별 펄스 강세 그리드 (grid[beat][pulse]). 표시 전용(읽기)입니다.
     let grid: [[AccentLevel]]
-    /// 현재 울리고 있는 박자 인덱스. 재생 중이 아니면 nil.
-    var activeBeat: Int? = nil
+    /// 현재 울리고 있는 (박, 펄스) 인덱스. 재생 중이 아니면 nil.
+    var activePulse: (beat: Int, pulse: Int)? = nil
     /// 바 탭을 모델(`cycleCell`)로 라우팅하는 클로저입니다.
     let onCycle: (Int, Int) -> Void
 
@@ -88,13 +88,17 @@ struct AccentBarsView: View {
     }
 
     private func beatGroup(beatIndex: Int, row: [AccentLevel]) -> some View {
-        let isActive = activeBeat == beatIndex
+        // 박자 번호 강조는 현재 울리는 박 기준으로 유지합니다.
+        let isActiveBeat = activePulse?.beat == beatIndex
 
         return VStack(spacing: 9) {
             // 바 컨테이너: 아래 정렬, 고정 높이 64
             HStack(alignment: .bottom, spacing: Self.barSpacing) {
                 ForEach(Array(row.enumerated()), id: \.offset) { pulseIndex, level in
-                    bar(level: level, isMain: pulseIndex == 0) {
+                    // 활성 펄스: 현재 울리는 (박, 펄스)와 정확히 일치하는 바 하나.
+                    let isActive = activePulse?.beat == beatIndex
+                        && activePulse?.pulse == pulseIndex
+                    bar(level: level, isMain: pulseIndex == 0, isActive: isActive) {
                         onCycle(beatIndex, pulseIndex)
                     }
                 }
@@ -103,30 +107,26 @@ struct AccentBarsView: View {
 
             Text("\(beatIndex + 1)")
                 .font(.monoTabular(size: 11, weight: .semibold))
-                .foregroundStyle(isActive ? Theme.Colors.acc : Theme.Colors.mut)
+                .foregroundStyle(isActiveBeat ? Theme.Colors.acc : Theme.Colors.mut)
         }
-        // 활성 비트: 슬레이트 틴트 배경 + 미세한 확대로 담백하게 강조합니다.
+        // 그룹 좌우 여백만 유지(폭 계산 groupHorizontalPadding=12과 일치). 배경/확대 없음.
         .padding(.horizontal, 6)
-        .padding(.vertical, 4)
-        .background {
-            RoundedRectangle(cornerRadius: Theme.Radius.bar, style: .continuous)
-                .fill(isActive ? Theme.Colors.accSoft : .clear)
-        }
-        .scaleEffect(isActive ? 1.06 : 1.0, anchor: .bottom)
-        .animation(Theme.Motion.chip, value: isActive)
     }
 
     @ViewBuilder
-    private func bar(level: AccentLevel, isMain: Bool, onTap: @escaping () -> Void) -> some View {
+    private func bar(level: AccentLevel, isMain: Bool, isActive: Bool, onTap: @escaping () -> Void) -> some View {
         let width: CGFloat = isMain ? Self.mainBarWidth : Self.subBarWidth
         let height = isMain ? level.mainHeight : level.subHeight
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.bar, style: .continuous)
+        // 활성 바: 액센트 색으로 채우고 부드러운 글로우를 더해 밝게 강조합니다.
+        let fill = isActive ? Theme.Colors.acc : level.fill
+        let border = isActive ? Theme.Colors.acc : level.borderColor
 
         shape
-            .fill(level.fill)
+            .fill(fill)
             .overlay {
                 shape.strokeBorder(
-                    level.borderColor,
+                    border,
                     style: StrokeStyle(
                         lineWidth: AccentLevel.borderWidth,
                         dash: level.isDashed ? [3, 2.5] : []
@@ -134,8 +134,10 @@ struct AccentBarsView: View {
                 )
             }
             .frame(width: width, height: height)
+            .shadow(color: isActive ? Theme.Colors.accSoft : .clear, radius: isActive ? 6 : 0)
             .contentShape(shape)
             .onTapGesture(perform: onTap)
             .animation(Theme.Motion.bar, value: level)
+            .animation(Theme.Motion.chip, value: isActive)
     }
 }
