@@ -15,6 +15,11 @@ struct MetronomeScreen: View {
     @State private var lastSequence: UInt64 = 0
     /// 방향키 BPM 조절을 위한 키보드 포커스입니다. 창 활성 시 항상 잡아 둡니다.
     @FocusState private var keyboardFocused: Bool
+    /// BPM 직접 입력 편집 모드 여부와 임시 입력 문자열입니다.
+    @State private var editingBPM = false
+    @State private var bpmText = ""
+    /// BPM 입력 필드 포커스입니다.
+    @FocusState private var bpmFieldFocused: Bool
 
     /// 방향키 1회 입력당 BPM 증감량입니다. 상하 = 10, 좌우 = 1.
     private static let bpmStepCoarse: Double = 10
@@ -46,6 +51,11 @@ struct MetronomeScreen: View {
         .onKeyPress(.downArrow) { adjustBPM(by: -Self.bpmStepCoarse) }
         .onKeyPress(.rightArrow) { adjustBPM(by: Self.bpmStepFine) }
         .onKeyPress(.leftArrow) { adjustBPM(by: -Self.bpmStepFine) }
+        // 스페이스바로 재생/정지를 토글합니다.
+        .onKeyPress(.space) {
+            state.togglePlay()
+            return .handled
+        }
     }
 
     /// BPM을 delta만큼 조절합니다. 클램프는 state.setBPM이 담당합니다.
@@ -174,16 +184,51 @@ struct MetronomeScreen: View {
             RoundButton(symbol: "−", size: 34, fontSize: 20) {
                 state.setBPM(state.bpm - 1)
             }
-            Text("\(Int(state.bpm))")
-                .font(.monoTabular(size: 66, weight: .semibold))
-                .tracking(-1.98) // -.03em @ 66px
-                .foregroundStyle(Theme.Colors.ink)
-                .fixedSize()
+            if editingBPM {
+                TextField("", text: $bpmText)
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.center)
+                    .font(.monoTabular(size: 66, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.ink)
+                    .focused($bpmFieldFocused)
+                    .frame(width: 160)
+                    .onSubmit(commitBPM)
+                    .onChange(of: bpmFieldFocused) { _, focused in
+                        if !focused { commitBPM() }
+                    }
+                    .accessibilityLabel("BPM 입력")
+            } else {
+                Text("\(Int(state.bpm))")
+                    .font(.monoTabular(size: 66, weight: .semibold))
+                    .tracking(-1.98) // -.03em @ 66px
+                    .foregroundStyle(Theme.Colors.ink)
+                    .fixedSize()
+                    .contentShape(Rectangle())
+                    .onTapGesture { beginEditingBPM() }
+                    .accessibilityLabel("BPM \(Int(state.bpm)), 탭하여 직접 입력")
+            }
             RoundButton(symbol: "+", size: 34, fontSize: 20) {
                 state.setBPM(state.bpm + 1)
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// 큰 BPM 숫자를 탭하면 직접 입력 모드로 전환합니다.
+    private func beginEditingBPM() {
+        bpmText = "\(Int(state.bpm))"
+        editingBPM = true
+        bpmFieldFocused = true
+    }
+
+    /// 입력값을 파싱해 BPM에 반영하고(클램프는 setBPM), 편집 모드를 종료합니다.
+    private func commitBPM() {
+        guard editingBPM else { return }
+        if let value = Double(bpmText.trimmingCharacters(in: .whitespaces)) {
+            state.setBPM(value)
+        }
+        editingBPM = false
+        keyboardFocused = true // 방향키/스페이스 포커스 복귀
     }
 
     // MARK: - Sound row
