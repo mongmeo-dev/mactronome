@@ -9,14 +9,14 @@ struct SubdivisionOption {
 }
 
 extension SubdivisionOption {
-    /// subIdx 0..5 에 대응하는 분할 옵션 목록. pulses = subCounts [1,2,4,3,6,1].
+    /// subIdx 0..5 에 대응하는 분할 옵션 목록. pulses = subCounts [1,2,4,3,6,5].
     static let all: [SubdivisionOption] = [
         SubdivisionOption(symbol: "♩", name: "4분음표", pulses: 1),
         SubdivisionOption(symbol: "♪", name: "8분음표", pulses: 2),
         SubdivisionOption(symbol: "♬", name: "16분음표", pulses: 4),
         SubdivisionOption(symbol: "3", name: "셋잇단", pulses: 3),
         SubdivisionOption(symbol: "6", name: "6잇단", pulses: 6),
-        SubdivisionOption(symbol: "♩.", name: "점4분", pulses: 1),
+        SubdivisionOption(symbol: "5", name: "5잇단", pulses: 5),
     ]
 }
 

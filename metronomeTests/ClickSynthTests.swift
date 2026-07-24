@@ -29,4 +29,25 @@ final class ClickSynthTests: XCTestCase {
         XCTAssertFalse(buffers[3].isEmpty)
         XCTAssertTrue(buffers[3].contains { $0 != 0 })
     }
+    func test_makeLevelBuffers_allSounds_muteSilent_strongAudible() {
+        for sound in ClickSound.allCases {
+            let buffers = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: sound)
+            XCTAssertEqual(buffers.count, 4, "\(sound.rawValue)")
+            XCTAssertTrue(buffers[0].allSatisfy { $0 == 0 }, "\(sound.rawValue) mute")
+            XCTAssertTrue(buffers[3].contains { $0 != 0 }, "\(sound.rawValue) strong")
+        }
+    }
+
+    func test_makeLevelBuffers_timbresDiffer() {
+        let wb = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .woodBlock)[3]
+        let beep = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .beep)[3]
+        XCTAssertNotEqual(wb, beep)
+    }
+
+    func test_noiseWaveform_isDeterministic() {
+        let a = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .click)[3]
+        let b = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .click)[3]
+        XCTAssertEqual(a, b) // 고정 시드 → 재현 가능
+    }
+
 }

@@ -7,7 +7,7 @@ final class MetronomeState: ObservableObject {
     /// BPM 허용 범위입니다.
     static let bpmRange: ClosedRange<Double> = 30...300
     /// 분할 인덱스별 박자당 펄스 수입니다.
-    static let subCounts = [1, 2, 4, 3, 6, 1]
+    static let subCounts = [1, 2, 4, 3, 6, 5]
 
     /// 박자별 펄스 강세 그리드. 기본 [[3],[1],[2],[1]]
     @Published var grid: [[AccentLevel]] = [[.strong], [.weak], [.medium], [.weak]] {
@@ -17,16 +17,29 @@ final class MetronomeState: ObservableObject {
     @Published var subIdx: Int = 0 {
         didSet { propagateGrid() }
     }
-    /// 분모: "2"/"4"/"8"/"16"
-    @Published var denom: String = "4"
+    /// 분모: "2"/"4"/"8"/"16". 한 박에 해당하는 음표 값이며, 변경 시 실제 템포에 반영됩니다.
+    @Published var denom: String = "4" {
+        didSet { engine.updateNoteValue(noteValue) }
+    }
     /// BPM (30...300 클램프). 기본값은 디자인 목업과 동일한 132.
     @Published var bpm: Double = 132 {
         didSet { engine.updateBPM(bpm) }
+    }
+    /// 클릭 음색입니다.
+    @Published var sound: ClickSound = .woodBlock {
+        didSet { engine.updateSound(sound) }
+    }
+    /// 마스터 볼륨(0...1)입니다.
+    @Published var volume: Double = 0.8 {
+        didSet { engine.setVolume(Float(volume)) }
     }
     /// 재생 상태
     @Published private(set) var isPlaying: Bool = false
     /// 마지막 오디오 시작 실패 메시지입니다(성공 시 nil).
     @Published var lastError: String?
+
+    /// 분모 문자열을 정수 음표값으로 변환합니다(파싱 실패 시 4).
+    var noteValue: Int { Int(denom) ?? 4 }
 
     let engine: MetronomeEngine
 
@@ -38,6 +51,9 @@ final class MetronomeState: ObservableObject {
         self.engine = engine
         propagateGrid()
         engine.updateBPM(bpm)
+        engine.updateNoteValue(noteValue)
+        engine.updateSound(sound)
+        engine.setVolume(Float(volume))
         engine.prewarm()
     }
 

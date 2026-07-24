@@ -15,7 +15,7 @@ final class MetronomeEngine {
     private let scheduler: PulseScheduler
     private let sampleRate: Double
 
-    private var levelBuffers: [[Float]] = []   // 인덱스=강세 레벨
+    private let levelChannel: LevelBuffersChannel   // 인덱스=강세 레벨, 락프리 교체 가능
     private var playbackIndex = -1
     private var playingLevel = 0
 
@@ -35,20 +35,40 @@ final class MetronomeEngine {
     var isRunning: Bool { gateOpen.load(ordering: .relaxed) }
 
     private var currentBPM: Double = 120
+    private var currentNoteValue: Int = 4
     private var configObserver: NSObjectProtocol?
 
     init() {
         let format = engine.outputNode.outputFormat(forBus: 0)
         self.sampleRate = format.sampleRate > 0 ? format.sampleRate : 44100
         self.scheduler = PulseScheduler(sampleRate: sampleRate)
-        self.levelBuffers = ClickSynth.makeLevelBuffers(sampleRate: sampleRate)
-        scheduler.setFramesPerBeat(framesPerBeat(bpm: currentBPM, sampleRate: sampleRate))
+        self.levelChannel = LevelBuffersChannel(ClickSynth.makeLevelBuffers(sampleRate: sampleRate))
+        recomputeFramesPerBeat()
         registerConfigObserver()
     }
 
     func updateBPM(_ bpm: Double) {
         currentBPM = bpm
-        scheduler.setFramesPerBeat(framesPerBeat(bpm: bpm, sampleRate: sampleRate))
+        recomputeFramesPerBeat()
+    }
+
+    /// 박(beat)에 해당하는 음표 분모를 갱신합니다(2/4/8/16). 다음 박 경계부터 반영됩니다.
+    func updateNoteValue(_ noteValue: Int) {
+        currentNoteValue = max(1, noteValue)
+        recomputeFramesPerBeat()
+    }
+
+    /// 마스터 출력 볼륨을 설정합니다(0...1). 메인 믹서에 적용되어 실시간 안전합니다.
+    func setVolume(_ volume: Float) {
+        engine.mainMixerNode.outputVolume = min(max(volume, 0), 1)
+    }
+    /// 클릭 음색을 교체합니다. 새 레벨 버퍼를 만들어 락프리로 게시하므로 재생 중에도 안전합니다.
+    func updateSound(_ sound: ClickSound) {
+        levelChannel.publish(ClickSynth.makeLevelBuffers(sampleRate: sampleRate, sound: sound))
+    }
+
+    private func recomputeFramesPerBeat() {
+        scheduler.setFramesPerBeat(framesPerBeat(bpm: currentBPM, sampleRate: sampleRate, noteValue: currentNoteValue))
     }
 
     func updateGrid(_ grid: [[Int]], pulsesPerBeat: Int) {
@@ -112,6 +132,7 @@ final class MetronomeEngine {
             return noErr
         }
 
+        let buffers = levelChannel.current()   // 렌더 콜백당 1회만 로드(락프리)
         for frame in 0..<Int(frameCount) {
             let tick = scheduler.advanceOneFrame()
             if tick.didFire {
@@ -120,8 +141,8 @@ final class MetronomeEngine {
                 beatChannel.publish(beatIndex: tick.beatIndex, pulseIndex: tick.pulseIndex, isAccent: tick.level == 3)
             }
             var sample: Float = 0
-            if playbackIndex >= 0, playingLevel >= 0, playingLevel < levelBuffers.count {
-                let buf = levelBuffers[playingLevel]
+            if playbackIndex >= 0, playingLevel >= 0, playingLevel < buffers.count {
+                let buf = buffers[playingLevel]
                 if playbackIndex < buf.count {
                     sample = buf[playbackIndex]
                     playbackIndex += 1

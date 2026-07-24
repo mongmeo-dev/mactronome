@@ -119,4 +119,24 @@ final class MetronomeStateTests: XCTestCase {
         state.setBPM(140)
         // No crash expected; engine updates are no-ops on audio output while stopped.
     }
+    func test_noteValue_parsesDenom() {
+        let state = MetronomeState()
+        XCTAssertEqual(state.noteValue, 4)
+        state.setDenom("8")
+        XCTAssertEqual(state.denom, "8")
+        XCTAssertEqual(state.noteValue, 8)
+    }
+
+    func test_subCounts_hasNoDuplicateForQuarter() {
+        // 마지막 분할 타일은 4분음표(1펄스)와 중복이 아니어야 한다(5잇단=5).
+        XCTAssertEqual(MetronomeState.subCounts, [1, 2, 4, 3, 6, 5])
+        XCTAssertEqual(Set(MetronomeState.subCounts).count, MetronomeState.subCounts.count)
+    }
+
+    func test_defaultSoundAndVolume() {
+        let state = MetronomeState()
+        XCTAssertEqual(state.sound, .woodBlock)
+        XCTAssertEqual(state.volume, 0.8, accuracy: 0.0001)
+    }
+
 }

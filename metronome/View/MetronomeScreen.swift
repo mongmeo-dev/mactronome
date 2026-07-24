@@ -155,9 +155,13 @@ struct MetronomeScreen: View {
 
             // 6. 사운드
             soundRow
+                .padding(.bottom, 10)
+
+            // 7. 볼륨
+            volumeRow
                 .padding(.bottom, 18)
 
-            // 7. 시작 + TAP
+            // 8. 시작 + TAP
             transportRow
         }
         .padding(Theme.Layout.contentPadding)
@@ -190,9 +194,27 @@ struct MetronomeScreen: View {
                 .font(.system(size: 12.5, weight: .medium))
                 .foregroundStyle(Theme.Colors.mut)
             Spacer()
-            Text("Wood Block ⌄")
-                .font(.monoTabular(size: 12))
-                .foregroundStyle(Theme.Colors.ink)
+            Menu {
+                ForEach(ClickSound.allCases) { option in
+                    Button {
+                        state.sound = option
+                    } label: {
+                        if state.sound == option {
+                            Label(option.displayName, systemImage: "checkmark")
+                        } else {
+                            Text(option.displayName)
+                        }
+                    }
+                }
+            } label: {
+                Text("\(state.sound.displayName) ⌄")
+                    .font(.monoTabular(size: 12))
+                    .foregroundStyle(Theme.Colors.ink)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .accessibilityLabel("사운드 선택")
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 12)
@@ -200,6 +222,31 @@ struct MetronomeScreen: View {
             RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(Theme.Colors.panel)
         }
+    }
+
+    // MARK: - Volume row
+
+    private var volumeRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: state.volume == 0 ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.Colors.mut)
+                .frame(width: 18, alignment: .leading)
+            Slider(value: $state.volume, in: 0...1)
+                .controlSize(.small)
+                .tint(Theme.Colors.acc)
+            Text("\(Int(state.volume * 100))")
+                .font(.monoTabular(size: 11))
+                .foregroundStyle(Theme.Colors.mut)
+                .frame(width: 28, alignment: .trailing)
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
+                .fill(Theme.Colors.panel)
+        }
+        .accessibilityLabel("볼륨")
     }
 
     // MARK: - Transport row (시작 / TAP)
