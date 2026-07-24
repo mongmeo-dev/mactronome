@@ -129,6 +129,10 @@ struct MetronomeScreen: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // 0. 프리셋 바
+            PresetBarView(state: state)
+                .padding(.bottom, 18)
+
             // 1. 악센트 바 — 탭은 state.cycleCell 로 라우팅, 재생 중 활성 비트를 강조합니다.
             AccentBarsView(
                 grid: state.grid,

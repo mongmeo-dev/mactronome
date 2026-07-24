@@ -60,6 +60,9 @@ final class MetronomeState: ObservableObject {
     /// 트레이너 bump 판정을 위해 완료된 마디를 세는 내부 카운터입니다.
     private var barsSinceBump = 0
 
+    /// 저장된 프리셋 목록입니다.
+    @Published private(set) var presets: [Preset] = []
+
     /// 분모 문자열을 정수 음표값으로 변환합니다(파싱 실패 시 4).
     var noteValue: Int { Int(denom) ?? 4 }
 
@@ -70,6 +73,7 @@ final class MetronomeState: ObservableObject {
     /// 설정 저장소입니다. nil이면 비영속(기본값 고정) — 단위 테스트 기본 모드입니다.
     private let store: UserDefaults?
     private static let settingsKey = "metronome.settings.v1"
+    private static let presetsKey = "metronome.presets.v1"
     /// 초기 로드 완료 전에는 persist를 억제합니다(로드 중 didSet 폭주 방지).
     private var isLoaded = false
 
@@ -78,7 +82,10 @@ final class MetronomeState: ObservableObject {
     init(engine: MetronomeEngine = MetronomeEngine(), store: UserDefaults? = nil) {
         self.engine = engine
         self.store = store
-        if let store { loadSettings(from: store) }
+        if let store {
+            loadSettings(from: store)
+            presets = loadPresets(from: store)
+        }
         isLoaded = true
         propagateGrid()
         engine.updateBPM(bpm)
@@ -106,6 +113,11 @@ final class MetronomeState: ObservableObject {
     private func loadSettings(from store: UserDefaults) {
         guard let data = store.data(forKey: Self.settingsKey),
               let s = try? JSONDecoder().decode(MetronomeSettings.self, from: data) else { return }
+        applySettings(s)
+    }
+
+    /// 설정 스냅샷을 상태에 반영합니다(범위 클램프 포함). 프리셋 적용/복원에서 공유합니다.
+    private func applySettings(_ s: MetronomeSettings) {
         bpm = min(max(s.bpm, Self.bpmRange.lowerBound), Self.bpmRange.upperBound)
         denom = s.denom
         subIdx = min(max(s.subIdx, 0), Self.subCounts.count - 1)
@@ -125,6 +137,47 @@ final class MetronomeState: ObservableObject {
         guard isLoaded, let store else { return }
         if let data = try? JSONEncoder().encode(snapshot()) {
             store.set(data, forKey: Self.settingsKey)
+        }
+    }
+
+    // MARK: - Presets
+
+    /// 현재 설정을 이름을 붙여 프리셋으로 저장합니다. 같은 이름이 있으면 덮어씁니다.
+    @discardableResult
+    func saveCurrentAsPreset(named name: String) -> Preset {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let preset = Preset(name: trimmed.isEmpty ? "프리셋 \(presets.count + 1)" : trimmed,
+                            settings: snapshot())
+        if let idx = presets.firstIndex(where: { $0.name == preset.name }) {
+            presets[idx].settings = preset.settings
+        } else {
+            presets.append(preset)
+        }
+        persistPresets()
+        return preset
+    }
+
+    /// 프리셋을 현재 상태에 적용합니다(현재 설정 영속화도 트리거됩니다).
+    func applyPreset(_ preset: Preset) {
+        applySettings(preset.settings)
+    }
+
+    /// 프리셋을 삭제합니다.
+    func deletePreset(_ preset: Preset) {
+        presets.removeAll { $0.id == preset.id }
+        persistPresets()
+    }
+
+    private func loadPresets(from store: UserDefaults) -> [Preset] {
+        guard let data = store.data(forKey: Self.presetsKey),
+              let list = try? JSONDecoder().decode([Preset].self, from: data) else { return [] }
+        return list
+    }
+
+    private func persistPresets() {
+        guard let store else { return }
+        if let data = try? JSONEncoder().encode(presets) {
+            store.set(data, forKey: Self.presetsKey)
         }
     }
 
