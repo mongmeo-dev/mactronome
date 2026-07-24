@@ -32,12 +32,33 @@ struct TrainerSectionView: View {
             Divider().overlay(Theme.Colors.bd)
 
             labeledStepper("카운트인", value: $state.countInBars, range: 0...8, suffix: "마디")
+
+            Divider().overlay(Theme.Colors.bd)
+
+            polyrhythmRow
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 12)
         .background {
             RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(Theme.Colors.panel)
+        }
+    }
+
+    /// 폴리리듬(마디당 보조 펄스) 컨트롤. 0/1이면 "끔", 그 외 "N : 주박수" 표기.
+    private var polyrhythmRow: some View {
+        HStack {
+            Text("폴리리듬")
+                .font(.system(size: 12.5, weight: .medium))
+                .foregroundStyle(Theme.Colors.mut)
+            Spacer()
+            Text(state.polyPulses <= 1 ? "끔" : "\(state.polyPulses) : \(state.grid.count)")
+                .font(.monoTabular(size: 12))
+                .foregroundStyle(state.polyPulses <= 1 ? Theme.Colors.mut2 : Theme.Colors.ink)
+            Stepper("", value: $state.polyPulses, in: 0...9)
+                .labelsHidden()
+                .controlSize(.small)
+                .accessibilityLabel("폴리리듬")
         }
     }
 

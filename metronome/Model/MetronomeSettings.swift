@@ -20,10 +20,12 @@ struct MetronomeSettings: Codable, Equatable {
     var trainerTargetBPM: Int
     /// 시작 전 카운트인 마디 수(0=사용 안 함).
     var countInBars: Int
+    /// 폴리리듬 마디당 펄스 수(0/1=사용 안 함).
+    var polyPulses: Int
 
     init(bpm: Double, denom: String, subIdx: Int, grid: [[Int]], sound: ClickSound, volume: Double,
          trainerEnabled: Bool = false, trainerEveryBars: Int = 2, trainerBPMStep: Int = 5,
-         trainerTargetBPM: Int = 180, countInBars: Int = 0) {
+         trainerTargetBPM: Int = 180, countInBars: Int = 0, polyPulses: Int = 0) {
         self.bpm = bpm
         self.denom = denom
         self.subIdx = subIdx
@@ -35,6 +37,7 @@ struct MetronomeSettings: Codable, Equatable {
         self.trainerBPMStep = trainerBPMStep
         self.trainerTargetBPM = trainerTargetBPM
         self.countInBars = countInBars
+        self.polyPulses = polyPulses
     }
 
     // 구버전 저장본(신규 필드 부재)과 호환되도록 누락 키에 기본값을 채웁니다.
@@ -51,5 +54,6 @@ struct MetronomeSettings: Codable, Equatable {
         trainerBPMStep = try c.decodeIfPresent(Int.self, forKey: .trainerBPMStep) ?? 5
         trainerTargetBPM = try c.decodeIfPresent(Int.self, forKey: .trainerTargetBPM) ?? 180
         countInBars = try c.decodeIfPresent(Int.self, forKey: .countInBars) ?? 0
+        polyPulses = try c.decodeIfPresent(Int.self, forKey: .polyPulses) ?? 0
     }
 }

@@ -19,6 +19,13 @@ final class MetronomeEngine {
     private var playbackIndex = -1
     private var playingLevel = 0
 
+    /// 폴리리듬 보조 보이스와 그 클릭 버퍼(고정 음색), 재생 인덱스입니다.
+    private let polyVoice = PolyVoice()
+    private let polyBuffer: [Float]
+    private var polyPlaybackIndex = -1
+    /// 주 보이스의 마디당 박 수(폴리 마디 길이 계산에 사용).
+    private var primaryBeatCount = 4
+
     /// 발화 게이트. 오디오 스레드와 메인 스레드가 공유하므로 원자적으로 다룹니다.
     /// true일 때만 스케줄러가 전진하며 클릭을 발화합니다.
     private let gateOpen = ManagedAtomic<Bool>(false)
@@ -43,6 +50,8 @@ final class MetronomeEngine {
         self.sampleRate = format.sampleRate > 0 ? format.sampleRate : 44100
         self.scheduler = PulseScheduler(sampleRate: sampleRate)
         self.levelChannel = LevelBuffersChannel(ClickSynth.makeLevelBuffers(sampleRate: sampleRate))
+        // 폴리 보이스는 주 보이스와 구분되도록 clave 강박 음색을 고정 사용합니다.
+        self.polyBuffer = ClickSynth.makeLevelBuffers(sampleRate: sampleRate, sound: .clave)[AccentLevel.strong.rawValue]
         recomputeFramesPerBeat()
         registerConfigObserver()
     }
@@ -67,12 +76,26 @@ final class MetronomeEngine {
         levelChannel.publish(ClickSynth.makeLevelBuffers(sampleRate: sampleRate, sound: sound))
     }
 
+    /// 폴리리듬 마디당 펄스 수를 설정합니다(0/1=끔, 2이상=켬).
+    func updatePolyrhythm(_ pulses: Int) {
+        polyVoice.setPulseCount(pulses)
+    }
+
     private func recomputeFramesPerBeat() {
         scheduler.setFramesPerBeat(framesPerBeat(bpm: currentBPM, sampleRate: sampleRate, noteValue: currentNoteValue))
+        recomputePolyBar()
+    }
+
+    /// 폴리 보이스 마디 길이 = 주 보이스 박 수 × 박당 프레임.
+    private func recomputePolyBar() {
+        let fpBeat = framesPerBeat(bpm: currentBPM, sampleRate: sampleRate, noteValue: currentNoteValue)
+        polyVoice.setFramesPerBar(max(1, primaryBeatCount) * fpBeat)
     }
 
     func updateGrid(_ grid: [[Int]], pulsesPerBeat: Int) {
         scheduler.grid.publish(PulsePlan(grid: grid, pulsesPerBeat: pulsesPerBeat))
+        primaryBeatCount = max(1, grid.count)
+        recomputePolyBar()
     }
 
     /// 앱 시작 시 엔진을 미리 구동해 첫 재생의 콜드 스타트 지연을 제거합니다.
@@ -87,7 +110,9 @@ final class MetronomeEngine {
         guard !isRunning else { return }
         try ensureEngineRunning()
         scheduler.reset()
+        polyVoice.reset()
         playbackIndex = -1
+        polyPlaybackIndex = -1
         // `.releasing`으로 저장하여 위의 reset()·playbackIndex 쓰기가 게이트 오픈보다
         // 먼저 오디오 스레드에 가시화되도록 합니다(render의 `.acquiring` 로드와 짝).
         // 정지→재생 반복 시 첫 발화가 이전 재생의 잔여 상태로 밀리는 것을 방지합니다.
@@ -150,7 +175,20 @@ final class MetronomeEngine {
                     playbackIndex = -1
                 }
             }
-            out[frame] = sample
+            // 폴리리듬 보조 보이스 믹싱.
+            if polyVoice.advanceOneFrame() {
+                polyPlaybackIndex = 0
+            }
+            if polyPlaybackIndex >= 0 {
+                if polyPlaybackIndex < polyBuffer.count {
+                    sample += polyBuffer[polyPlaybackIndex] * 0.7
+                    polyPlaybackIndex += 1
+                } else {
+                    polyPlaybackIndex = -1
+                }
+            }
+            // 두 보이스 합산이 풀스케일을 넘지 않도록 클램프.
+            out[frame] = min(max(sample, -1), 1)
         }
         return noErr
     }
@@ -160,7 +198,8 @@ final class MetronomeEngine {
             forName: .AVAudioEngineConfigurationChange, object: nil, queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
-            self.scheduler.setFramesPerBeat(framesPerBeat(bpm: self.currentBPM, sampleRate: self.sampleRate))
+            // noteValue·폴리 마디 길이까지 일관되게 다시 계산합니다.
+            self.recomputeFramesPerBeat()
             // 구성 변경으로 엔진이 멈췄을 수 있으므로, 재생 중이었다면 엔진만 다시 구동합니다.
             // 게이트는 그대로 유지되어 발화가 끊기지 않습니다.
             if self.isRunning { try? self.ensureEngineRunning() }

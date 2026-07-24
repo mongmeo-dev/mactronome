@@ -50,6 +50,10 @@ final class MetronomeState: ObservableObject {
     @Published var trainerTargetBPM: Int = 180 { didSet { persist() } }
     /// 시작 전 카운트인 마디 수(0=사용 안 함).
     @Published var countInBars: Int = 0 { didSet { persist() } }
+    /// 폴리리듬: 마디당 보조 펄스 수(0/1=끔, 2이상=켬).
+    @Published var polyPulses: Int = 0 {
+        didSet { engine.updatePolyrhythm(polyPulses); persist() }
+    }
 
     /// 재생 중 현재 마디 번호(1부터). 정지 시 0.
     @Published private(set) var currentBar: Int = 0
@@ -92,6 +96,7 @@ final class MetronomeState: ObservableObject {
         engine.updateNoteValue(noteValue)
         engine.updateSound(sound)
         engine.setVolume(Float(volume))
+        engine.updatePolyrhythm(polyPulses)
         engine.prewarm()
     }
 
@@ -105,7 +110,7 @@ final class MetronomeState: ObservableObject {
             sound: sound, volume: volume,
             trainerEnabled: trainerEnabled, trainerEveryBars: trainerEveryBars,
             trainerBPMStep: trainerBPMStep, trainerTargetBPM: trainerTargetBPM,
-            countInBars: countInBars
+            countInBars: countInBars, polyPulses: polyPulses
         )
     }
 
@@ -130,6 +135,7 @@ final class MetronomeState: ObservableObject {
         trainerBPMStep = max(1, s.trainerBPMStep)
         trainerTargetBPM = s.trainerTargetBPM
         countInBars = max(0, s.countInBars)
+        polyPulses = max(0, s.polyPulses)
     }
 
     /// 현재 상태를 저장소에 기록합니다. store가 없거나 로드 전이면 무시합니다.
