@@ -79,6 +79,10 @@ struct MetronomeScreen: View {
                         let snapshot = state.engine.beatChannel.latest()
                         lastSequence = snapshot.sequence
                         activePulse = (beat: snapshot.beatIndex, pulse: snapshot.pulseIndex)
+                        // 다운비트(0박·0펄스)에서 마디 시작을 알림(마디 카운터/트레이너/카운트인 구동).
+                        if snapshot.beatIndex == 0 && snapshot.pulseIndex == 0 {
+                            state.registerBarStart()
+                        }
                     }
             }
         }
@@ -138,13 +142,16 @@ struct MetronomeScreen: View {
             bpmReadout
                 .padding(.bottom, 6)
 
-            // 3. 템포 캡션
-            Text("\(tempoWord) · BPM")
-                .font(.system(size: 12))
-                .tracking(1.68) // .14em @ 12px
-                .foregroundStyle(Theme.Colors.mut2)
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 24)
+            // 3. 템포 캡션 + 마디/카운트인 인디케이터
+            VStack(spacing: 4) {
+                Text("\(tempoWord) · BPM")
+                    .font(.system(size: 12))
+                    .tracking(1.68) // .14em @ 12px
+                    .foregroundStyle(Theme.Colors.mut2)
+                barIndicator
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 20)
 
             // 4. 박자표
             sectionLabel("박자표")
@@ -171,10 +178,36 @@ struct MetronomeScreen: View {
             volumeRow
                 .padding(.bottom, 18)
 
-            // 8. 시작 + TAP
+            // 8. 연습(트레이너/카운트인)
+            sectionLabel("연습")
+                .padding(.bottom, 10)
+            TrainerSectionView(state: state)
+                .padding(.bottom, 18)
+
+            // 9. 시작 + TAP
             transportRow
         }
         .padding(Theme.Layout.contentPadding)
+    }
+
+    /// 재생 중 마디 번호(또는 카운트인 잔여)를 표시합니다. 정지 시에도 높이를 유지해 레이아웃 흔들림을 막습니다.
+    @ViewBuilder
+    private var barIndicator: some View {
+        Group {
+            if state.isPlaying, state.isCountingIn {
+                Text("카운트인 \(state.countInRemaining)")
+                    .font(.monoTabular(size: 11, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.acc)
+            } else if state.isPlaying {
+                Text("마디 \(state.currentBar)")
+                    .font(.monoTabular(size: 11))
+                    .foregroundStyle(Theme.Colors.mut)
+            } else {
+                Text(" ")
+                    .font(.monoTabular(size: 11))
+            }
+        }
+        .frame(height: 14)
     }
 
     // MARK: - BPM readout

@@ -38,6 +38,28 @@ final class MetronomeState: ObservableObject {
     /// 마지막 오디오 시작 실패 메시지입니다(성공 시 nil).
     @Published var lastError: String?
 
+    // MARK: - 연습 도구 (템포 트레이너 / 카운트인)
+
+    /// 템포 트레이너: 마디마다 자동으로 BPM을 올릴지 여부.
+    @Published var trainerEnabled: Bool = false { didSet { persist() } }
+    /// 몇 마디마다 올릴지(≥1).
+    @Published var trainerEveryBars: Int = 2 { didSet { persist() } }
+    /// 한 번에 올릴 BPM(≥1).
+    @Published var trainerBPMStep: Int = 5 { didSet { persist() } }
+    /// 도달 목표 BPM.
+    @Published var trainerTargetBPM: Int = 180 { didSet { persist() } }
+    /// 시작 전 카운트인 마디 수(0=사용 안 함).
+    @Published var countInBars: Int = 0 { didSet { persist() } }
+
+    /// 재생 중 현재 마디 번호(1부터). 정지 시 0.
+    @Published private(set) var currentBar: Int = 0
+    /// 카운트인 진행 중 여부와 남은 마디 수.
+    @Published private(set) var isCountingIn: Bool = false
+    @Published private(set) var countInRemaining: Int = 0
+
+    /// 트레이너 bump 판정을 위해 완료된 마디를 세는 내부 카운터입니다.
+    private var barsSinceBump = 0
+
     /// 분모 문자열을 정수 음표값으로 변환합니다(파싱 실패 시 4).
     var noteValue: Int { Int(denom) ?? 4 }
 
@@ -73,7 +95,10 @@ final class MetronomeState: ObservableObject {
         MetronomeSettings(
             bpm: bpm, denom: denom, subIdx: subIdx,
             grid: grid.map { $0.map(\.rawValue) },
-            sound: sound, volume: volume
+            sound: sound, volume: volume,
+            trainerEnabled: trainerEnabled, trainerEveryBars: trainerEveryBars,
+            trainerBPMStep: trainerBPMStep, trainerTargetBPM: trainerTargetBPM,
+            countInBars: countInBars
         )
     }
 
@@ -88,6 +113,11 @@ final class MetronomeState: ObservableObject {
         if !restored.isEmpty { grid = restored }
         sound = s.sound
         volume = min(max(s.volume, 0), 1)
+        trainerEnabled = s.trainerEnabled
+        trainerEveryBars = max(1, s.trainerEveryBars)
+        trainerBPMStep = max(1, s.trainerBPMStep)
+        trainerTargetBPM = s.trainerTargetBPM
+        countInBars = max(0, s.countInBars)
     }
 
     /// 현재 상태를 저장소에 기록합니다. store가 없거나 로드 전이면 무시합니다.
@@ -140,6 +170,7 @@ final class MetronomeState: ObservableObject {
         if engine.isRunning {
             engine.stop()
         } else {
+            resetBarTracking()
             do {
                 try engine.start()
                 lastError = nil
@@ -148,6 +179,42 @@ final class MetronomeState: ObservableObject {
             }
         }
         isPlaying = engine.isRunning
+        if !isPlaying { resetBarTracking() }
+    }
+
+    /// 재생 시작 시 마디/카운트인/트레이너 카운터를 초기화합니다.
+    private func resetBarTracking() {
+        barsSinceBump = 0
+        currentBar = 0
+        countInRemaining = countInBars
+        isCountingIn = countInBars > 0
+    }
+
+    /// 마디 시작(다운비트) 시점에 UI 폴러가 호출합니다.
+    /// 카운트인 소진 → 마디 카운터 증가 → (완료 마디 기준) 템포 트레이너 bump 순으로 처리합니다.
+    func registerBarStart() {
+        guard isPlaying else { return }
+        if countInRemaining > 0 {
+            countInRemaining -= 1
+            isCountingIn = countInRemaining > 0
+            return
+        }
+        if currentBar >= 1 {
+            // 직전 마디가 하나 완료됨 → 트레이너 판정.
+            barsSinceBump += 1
+            if trainerEnabled, barsSinceBump >= max(1, trainerEveryBars) {
+                barsSinceBump = 0
+                advanceTrainer()
+            }
+        }
+        currentBar += 1
+    }
+
+    /// 목표 BPM을 넘지 않도록 한 스텝 올립니다.
+    private func advanceTrainer() {
+        let target = Double(trainerTargetBPM)
+        guard bpm < target else { return }
+        setBPM(min(bpm + Double(trainerBPMStep), target))
     }
 
     /// 현재 시각으로 탭 템포를 기록합니다.
