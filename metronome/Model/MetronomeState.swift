@@ -11,27 +11,27 @@ final class MetronomeState: ObservableObject {
 
     /// 박자별 펄스 강세 그리드. 기본 [[3],[1],[2],[1]]
     @Published var grid: [[AccentLevel]] = [[.strong], [.weak], [.medium], [.weak]] {
-        didSet { propagateGrid() }
+        didSet { propagateGrid(); persist() }
     }
     /// 분할 인덱스 0..5
     @Published var subIdx: Int = 0 {
-        didSet { propagateGrid() }
+        didSet { propagateGrid(); persist() }
     }
     /// 분모: "2"/"4"/"8"/"16". 한 박에 해당하는 음표 값이며, 변경 시 실제 템포에 반영됩니다.
     @Published var denom: String = "4" {
-        didSet { engine.updateNoteValue(noteValue) }
+        didSet { engine.updateNoteValue(noteValue); persist() }
     }
     /// BPM (30...300 클램프). 기본값은 디자인 목업과 동일한 132.
     @Published var bpm: Double = 132 {
-        didSet { engine.updateBPM(bpm) }
+        didSet { engine.updateBPM(bpm); persist() }
     }
     /// 클릭 음색입니다.
     @Published var sound: ClickSound = .woodBlock {
-        didSet { engine.updateSound(sound) }
+        didSet { engine.updateSound(sound); persist() }
     }
     /// 마스터 볼륨(0...1)입니다.
     @Published var volume: Double = 0.8 {
-        didSet { engine.setVolume(Float(volume)) }
+        didSet { engine.setVolume(Float(volume)); persist() }
     }
     /// 재생 상태
     @Published private(set) var isPlaying: Bool = false
@@ -45,16 +45,57 @@ final class MetronomeState: ObservableObject {
 
     private var tapTempo = TapTempo()
 
+    /// 설정 저장소입니다. nil이면 비영속(기본값 고정) — 단위 테스트 기본 모드입니다.
+    private let store: UserDefaults?
+    private static let settingsKey = "metronome.settings.v1"
+    /// 초기 로드 완료 전에는 persist를 억제합니다(로드 중 didSet 폭주 방지).
+    private var isLoaded = false
+
     var pulsesPerBeat: Int { Self.subCounts[subIdx] }
 
-    init(engine: MetronomeEngine = MetronomeEngine()) {
+    init(engine: MetronomeEngine = MetronomeEngine(), store: UserDefaults? = nil) {
         self.engine = engine
+        self.store = store
+        if let store { loadSettings(from: store) }
+        isLoaded = true
         propagateGrid()
         engine.updateBPM(bpm)
         engine.updateNoteValue(noteValue)
         engine.updateSound(sound)
         engine.setVolume(Float(volume))
         engine.prewarm()
+    }
+
+    // MARK: - Persistence
+
+    /// 현재 상태를 설정 스냅샷으로 만듭니다.
+    func snapshot() -> MetronomeSettings {
+        MetronomeSettings(
+            bpm: bpm, denom: denom, subIdx: subIdx,
+            grid: grid.map { $0.map(\.rawValue) },
+            sound: sound, volume: volume
+        )
+    }
+
+    /// 저장소에서 설정을 읽어 상태에 반영합니다(로드 중에는 persist가 억제됩니다).
+    private func loadSettings(from store: UserDefaults) {
+        guard let data = store.data(forKey: Self.settingsKey),
+              let s = try? JSONDecoder().decode(MetronomeSettings.self, from: data) else { return }
+        bpm = min(max(s.bpm, Self.bpmRange.lowerBound), Self.bpmRange.upperBound)
+        denom = s.denom
+        subIdx = min(max(s.subIdx, 0), Self.subCounts.count - 1)
+        let restored = s.grid.map { row in row.map { AccentLevel(rawValue: $0) ?? .weak } }
+        if !restored.isEmpty { grid = restored }
+        sound = s.sound
+        volume = min(max(s.volume, 0), 1)
+    }
+
+    /// 현재 상태를 저장소에 기록합니다. store가 없거나 로드 전이면 무시합니다.
+    private func persist() {
+        guard isLoaded, let store else { return }
+        if let data = try? JSONEncoder().encode(snapshot()) {
+            store.set(data, forKey: Self.settingsKey)
+        }
     }
 
     /// 셀 강세를 다음 레벨로 순환합니다.
