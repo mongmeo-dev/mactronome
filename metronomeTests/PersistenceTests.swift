@@ -56,4 +56,38 @@ final class PersistenceTests: XCTestCase {
         let decoded = try JSONDecoder().decode(MetronomeSettings.self, from: data)
         XCTAssertEqual(s, decoded)
     }
+    func test_displayAndPolyFields_persist() {
+        let store = makeStore()
+        let a = MetronomeState(store: store)
+        a.polyPulses = 3
+        a.visualFlash = true
+        a.appearance = .dark
+        a.floating = true
+        a.trainerEnabled = true
+        a.countInBars = 2
+
+        let b = MetronomeState(store: store)
+        XCTAssertEqual(b.polyPulses, 3)
+        XCTAssertTrue(b.visualFlash)
+        XCTAssertEqual(b.appearance, .dark)
+        XCTAssertTrue(b.floating)
+        XCTAssertTrue(b.trainerEnabled)
+        XCTAssertEqual(b.countInBars, 2)
+    }
+
+    func test_legacySettings_decodeWithDefaults() throws {
+        // 구버전(신규 키 없음) JSON도 기본값으로 디코딩되어야 한다.
+        let legacy = """
+        {"bpm":128,"denom":"4","subIdx":0,"grid":[[3],[1],[2],[1]],"sound":"beep","volume":0.7}
+        """.data(using: .utf8)!
+        let s = try JSONDecoder().decode(MetronomeSettings.self, from: legacy)
+        XCTAssertEqual(s.bpm, 128)
+        XCTAssertEqual(s.sound, .beep)
+        XCTAssertEqual(s.polyPulses, 0)
+        XCTAssertEqual(s.appearance, .system)
+        XCTAssertFalse(s.visualFlash)
+        XCTAssertFalse(s.floating)
+        XCTAssertEqual(s.countInBars, 0)
+    }
+
 }

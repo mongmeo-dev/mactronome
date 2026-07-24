@@ -8,31 +8,35 @@ enum Theme {
     // MARK: - Colors
 
     enum Colors {
-        /// 윈도우 배경 #fafaf9
-        static let bg = Color(hex: 0xFAFAF9)
-        /// 패널 배경 #f1f0ed
-        static let panel = Color(hex: 0xF1F0ED)
-        /// 잉크(주 텍스트/강박) #1c1b19
-        static let ink = Color(hex: 0x1C1B19)
-        /// 보조 텍스트 rgba(28,27,25,.5)
-        static let mut = Color(hex: 0x1C1B19, opacity: 0.5)
-        /// 약보조 텍스트 rgba(28,27,25,.35)
-        static let mut2 = Color(hex: 0x1C1B19, opacity: 0.35)
-        /// 경계선 rgba(28,27,25,.09)
-        static let bd = Color(hex: 0x1C1B19, opacity: 0.09)
+        /// 윈도우 배경
+        static let bg = Color.dynamicHex(0xFAFAF9, 0x1E1D1B)
+        /// 패널 배경
+        static let panel = Color.dynamicHex(0xF1F0ED, 0x2A2825)
+        /// 잉크(주 텍스트/강박)
+        static let ink = Color.dynamicHex(0x1C1B19, 0xEDECE8)
+        /// 보조 텍스트
+        static let mut = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.5, darkOpacity: 0.55)
+        /// 약보조 텍스트
+        static let mut2 = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.35, darkOpacity: 0.4)
+        /// 경계선
+        static let bd = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.09, darkOpacity: 0.14)
 
-        /// 액센트 oklch(0.56 0.035 255) → sRGB #677689 (슬레이트 블루)
-        static let acc = Color(hex: 0x677689)
-        /// 액센트 12% 알파 (acc-soft)
-        static let accSoft = Color(hex: 0x677689, opacity: 0.12)
+        /// 액센트(슬레이트 블루). 다크에서는 대비를 위해 밝게.
+        static let acc = Color.dynamicHex(0x677689, 0x93A2B5)
+        /// 액센트 소프트(알파)
+        static let accSoft = Color.dynamicHex(0x677689, 0x93A2B5, lightOpacity: 0.12, darkOpacity: 0.24)
 
-        /// 약박 실선 경계 rgba(28,27,25,.28)
-        static let barWeakBorder = Color(hex: 0x1C1B19, opacity: 0.28)
+        /// 약박 실선 경계
+        static let barWeakBorder = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.28, darkOpacity: 0.32)
 
-        /// 데스크(윈도우 바깥) #e9e7e2
-        static let desk = Color(hex: 0xE9E7E2)
+        /// 데스크(윈도우 바깥)
+        static let desk = Color.dynamicHex(0xE9E7E2, 0x141311)
 
-        /// 신호등
+        /// 타이틀바 그라디언트 상/하
+        static let titleBarTop = Color.dynamicHex(0xF3F2EF, 0x2C2A27)
+        static let titleBarBottom = Color.dynamicHex(0xECEAE6, 0x242320)
+
+        /// 신호등(외관 무관 고정)
         static let trafficRed = Color(hex: 0xFF5F57)
         static let trafficYellow = Color(hex: 0xFEBC2E)
         static let trafficGreen = Color(hex: 0x28C840)
@@ -71,6 +75,17 @@ extension Color {
         let g = Double((hex >> 8) & 0xFF) / 255.0
         let b = Double(hex & 0xFF) / 255.0
         self.init(.sRGB, red: r, green: g, blue: b, opacity: opacity)
+    }
+
+    /// 라이트/다크 외관에 따라 다른 hex를 해석하는 다이내믹 컬러입니다.
+    /// NSColor 다이내믹 프로바이더로 만들어 시스템/앱 외관 전환에 자동 반응합니다.
+    static func dynamicHex(_ light: UInt32, _ dark: UInt32,
+                           lightOpacity: Double = 1, darkOpacity: Double = 1) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            let color = Color(hex: isDark ? dark : light, opacity: isDark ? darkOpacity : lightOpacity)
+            return NSColor(color)
+        })
     }
 }
 

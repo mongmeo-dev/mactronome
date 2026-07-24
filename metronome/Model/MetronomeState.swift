@@ -55,6 +55,14 @@ final class MetronomeState: ObservableObject {
         didSet { engine.updatePolyrhythm(polyPulses); persist() }
     }
 
+    // MARK: - 표시/창 설정
+    /// 비주얼 플래시 사용 여부.
+    @Published var visualFlash: Bool = false { didSet { persist() } }
+    /// 화면 모드(시스템/라이트/다크).
+    @Published var appearance: AppAppearance = .system { didSet { persist() } }
+    /// 창을 항상 위에 표시할지 여부.
+    @Published var floating: Bool = false { didSet { persist() } }
+
     /// 재생 중 현재 마디 번호(1부터). 정지 시 0.
     @Published private(set) var currentBar: Int = 0
     /// 카운트인 진행 중 여부와 남은 마디 수.
@@ -110,7 +118,8 @@ final class MetronomeState: ObservableObject {
             sound: sound, volume: volume,
             trainerEnabled: trainerEnabled, trainerEveryBars: trainerEveryBars,
             trainerBPMStep: trainerBPMStep, trainerTargetBPM: trainerTargetBPM,
-            countInBars: countInBars, polyPulses: polyPulses
+            countInBars: countInBars, polyPulses: polyPulses,
+            visualFlash: visualFlash, appearance: appearance, floating: floating
         )
     }
 
@@ -136,6 +145,9 @@ final class MetronomeState: ObservableObject {
         trainerTargetBPM = s.trainerTargetBPM
         countInBars = max(0, s.countInBars)
         polyPulses = max(0, s.polyPulses)
+        visualFlash = s.visualFlash
+        appearance = s.appearance
+        floating = s.floating
     }
 
     /// 현재 상태를 저장소에 기록합니다. store가 없거나 로드 전이면 무시합니다.

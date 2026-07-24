@@ -20,6 +20,8 @@ struct MetronomeScreen: View {
     @State private var bpmText = ""
     /// BPM 입력 필드 포커스입니다.
     @FocusState private var bpmFieldFocused: Bool
+    /// 비주얼 플래시 오버레이의 현재 불투명도입니다.
+    @State private var flashOpacity: Double = 0
 
     /// 방향키 1회 입력당 BPM 증감량입니다. 상하 = 10, 좌우 = 1.
     private static let bpmStepCoarse: Double = 10
@@ -36,6 +38,14 @@ struct MetronomeScreen: View {
         }
         .frame(width: Theme.Layout.windowWidth)
         .background(Theme.Colors.bg)
+        .overlay {
+            // 비주얼 플래시: 강박은 더 밝게, 약박은 은은하게.
+            Theme.Colors.acc
+                .opacity(flashOpacity)
+                .allowsHitTesting(false)
+        }
+        .preferredColorScheme(state.appearance.colorScheme)
+        .background(FloatingWindowConfigurator(floating: state.floating))
         .background(beatPoller)
         .onChange(of: state.isPlaying) { _, playing in
             // 정지 시 활성 강조를 즉시 해제합니다.
@@ -83,6 +93,11 @@ struct MetronomeScreen: View {
                         if snapshot.beatIndex == 0 && snapshot.pulseIndex == 0 {
                             state.registerBarStart()
                         }
+                        // 비주얼 플래시: 매 펄스마다 피크값 세팅 후 빠르게 페이드.
+                        if state.visualFlash {
+                            flashOpacity = snapshot.isAccent ? 0.32 : 0.16
+                            withAnimation(.easeOut(duration: 0.16)) { flashOpacity = 0 }
+                        }
                     }
             }
         }
@@ -98,7 +113,7 @@ struct MetronomeScreen: View {
     private var titleBar: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(hex: 0xF3F2EF), Color(hex: 0xECEAE6)],
+                colors: [Theme.Colors.titleBarTop, Theme.Colors.titleBarBottom],
                 startPoint: .top, endPoint: .bottom
             )
             HStack(spacing: 8) {
@@ -188,7 +203,13 @@ struct MetronomeScreen: View {
             TrainerSectionView(state: state)
                 .padding(.bottom, 18)
 
-            // 9. 시작 + TAP
+            // 9. 표시/창
+            sectionLabel("표시")
+                .padding(.bottom, 10)
+            DisplaySettingsView(state: state)
+                .padding(.bottom, 18)
+
+            // 10. 시작 + TAP
             transportRow
         }
         .padding(Theme.Layout.contentPadding)

@@ -22,10 +22,17 @@ struct MetronomeSettings: Codable, Equatable {
     var countInBars: Int
     /// 폴리리듬 마디당 펄스 수(0/1=사용 안 함).
     var polyPulses: Int
+    /// 비주얼 플래시 사용 여부.
+    var visualFlash: Bool
+    /// 화면 모드(시스템/라이트/다크).
+    var appearance: AppAppearance
+    /// 창을 항상 위에 표시할지 여부.
+    var floating: Bool
 
     init(bpm: Double, denom: String, subIdx: Int, grid: [[Int]], sound: ClickSound, volume: Double,
          trainerEnabled: Bool = false, trainerEveryBars: Int = 2, trainerBPMStep: Int = 5,
-         trainerTargetBPM: Int = 180, countInBars: Int = 0, polyPulses: Int = 0) {
+         trainerTargetBPM: Int = 180, countInBars: Int = 0, polyPulses: Int = 0,
+         visualFlash: Bool = false, appearance: AppAppearance = .system, floating: Bool = false) {
         self.bpm = bpm
         self.denom = denom
         self.subIdx = subIdx
@@ -38,6 +45,9 @@ struct MetronomeSettings: Codable, Equatable {
         self.trainerTargetBPM = trainerTargetBPM
         self.countInBars = countInBars
         self.polyPulses = polyPulses
+        self.visualFlash = visualFlash
+        self.appearance = appearance
+        self.floating = floating
     }
 
     // 구버전 저장본(신규 필드 부재)과 호환되도록 누락 키에 기본값을 채웁니다.
@@ -55,5 +65,8 @@ struct MetronomeSettings: Codable, Equatable {
         trainerTargetBPM = try c.decodeIfPresent(Int.self, forKey: .trainerTargetBPM) ?? 180
         countInBars = try c.decodeIfPresent(Int.self, forKey: .countInBars) ?? 0
         polyPulses = try c.decodeIfPresent(Int.self, forKey: .polyPulses) ?? 0
+        visualFlash = try c.decodeIfPresent(Bool.self, forKey: .visualFlash) ?? false
+        appearance = try c.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
+        floating = try c.decodeIfPresent(Bool.self, forKey: .floating) ?? false
     }
 }
