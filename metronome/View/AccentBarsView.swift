@@ -27,8 +27,6 @@ struct AccentBarsView: View {
     static let groupSpacing: CGFloat = 16
     /// 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
     static let availableWidth: CGFloat = 392
-    /// 줄바꿈 시 한 줄에 놓는 박자 그룹 개수.
-    static let groupsPerWrappedRow: Int = 2
 
     // MARK: - 높이 계산 상수 (한 줄이 실제로 차지하는 세로 크기)
 
@@ -51,13 +49,23 @@ struct AccentBarsView: View {
         return bars + gaps + groupHorizontalPadding
     }
 
+    /// 가용 폭 안에 한 줄로 놓을 수 있는 박자 그룹 개수를 계산합니다.
+    /// 이전에는 상수 2로 고정돼 있어서, 4분음표 8박(한 줄에 7개가 들어감)이
+    /// 2개씩 4줄로 쪼개지며 창이 불필요하게 세로로 길어졌습니다.
+    /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
+    static func groupsPerRow(pulses: Int) -> Int {
+        let width = groupWidth(pulses: pulses)
+        guard width > 0 else { return 1 }
+        // n개를 놓으려면 width*n + groupSpacing*(n-1) ≤ availableWidth 여야 합니다.
+        let fit = (availableWidth + groupSpacing) / (width + groupSpacing)
+        return max(1, Int(fit.rounded(.down)))
+    }
+
     /// 박자 수/펄스 수만으로, 모든 박자 그룹을 한 줄에 놓으면 가용 폭을 넘는지 판단합니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
     static func overflowsSingleRow(beatCount: Int, pulses: Int) -> Bool {
         guard beatCount > 0 else { return false }
-        let total = groupWidth(pulses: pulses) * CGFloat(beatCount)
-            + groupSpacing * CGFloat(beatCount - 1)
-        return total > availableWidth
+        return beatCount > groupsPerRow(pulses: pulses)
     }
 
     /// 현재 grid 기준으로 한 줄 배치가 넘치는지 판단합니다.
@@ -66,12 +74,12 @@ struct AccentBarsView: View {
     }
 
     /// 실제 렌더될 박자 그룹 "줄" 수를 계산합니다.
-    /// 한 줄에 들어가면 1, 넘치면 그룹을 `groupsPerWrappedRow`개씩 끊어 올림 계산합니다.
+    /// 한 줄에 들어가면 1, 넘치면 `groupsPerRow(pulses:)`개씩 끊어 올림 계산합니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
     static func rowCount(beatCount: Int, pulses: Int) -> Int {
         guard beatCount > 0 else { return 0 }
-        guard overflowsSingleRow(beatCount: beatCount, pulses: pulses) else { return 1 }
-        return (beatCount + groupsPerWrappedRow - 1) / groupsPerWrappedRow
+        let perRow = groupsPerRow(pulses: pulses)
+        return (beatCount + perRow - 1) / perRow
     }
 
     /// 악센트 바 영역이 실제로 필요로 하는 세로 높이입니다.
@@ -111,11 +119,12 @@ struct AccentBarsView: View {
         }
     }
 
-    /// 넘칠 때: 박자 그룹을 한 줄에 2개씩 끊어 여러 줄로 배치합니다.
+    /// 넘칠 때: 가용 폭이 허용하는 만큼(`groupsPerRow`)씩 끊어 여러 줄로 배치합니다.
     private var wrappedRows: some View {
         let indexedRows = Array(grid.enumerated())
-        let chunks = stride(from: 0, to: indexedRows.count, by: 2).map { start in
-            Array(indexedRows[start..<min(start + 2, indexedRows.count)])
+        let perRow = Self.groupsPerRow(pulses: grid.first?.count ?? 0)
+        let chunks = stride(from: 0, to: indexedRows.count, by: perRow).map { start in
+            Array(indexedRows[start..<min(start + perRow, indexedRows.count)])
         }
         return VStack(alignment: .center, spacing: Self.groupSpacing) {
             ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
