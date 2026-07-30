@@ -163,7 +163,10 @@ struct MetronomeScreen: View {
             AccentBarsView(
                 grid: state.grid,
                 activePulse: activePulse,
-                onCycle: { beat, pulse in state.cycleCell(beat: beat, pulse: pulse) }
+                onCycle: { beat, pulse in state.cycleCell(beat: beat, pulse: pulse) },
+                onSet: { beat, pulse, level in
+                    state.setCell(beat: beat, pulse: pulse, level: level)
+                }
             )
             .frame(maxWidth: .infinity)
             .padding(.bottom, 22)

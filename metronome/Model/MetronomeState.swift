@@ -199,9 +199,23 @@ final class MetronomeState: ObservableObject {
         }
     }
 
-    /// 셀 강세를 다음 레벨로 순환합니다.
+    /// 셀 강세를 다음 레벨로 순환합니다. 범위를 벗어난 좌표는 무시합니다
+    /// (분할 변경으로 그리드가 리사이즈되는 도중 들어온 탭 방어).
     func cycleCell(beat: Int, pulse: Int) {
+        guard isValidCell(beat: beat, pulse: pulse) else { return }
         grid[beat][pulse] = grid[beat][pulse].next
+    }
+
+    /// 셀 강세를 특정 레벨로 직접 지정합니다(컨텍스트 메뉴 등).
+    /// 순환만 가능하면 한 단계 되돌리는 데 세 번 눌러야 했습니다.
+    func setCell(beat: Int, pulse: Int, level: AccentLevel) {
+        guard isValidCell(beat: beat, pulse: pulse) else { return }
+        grid[beat][pulse] = level
+    }
+
+    /// 좌표가 현재 그리드 안에 있는지 확인합니다.
+    func isValidCell(beat: Int, pulse: Int) -> Bool {
+        grid.indices.contains(beat) && grid[beat].indices.contains(pulse)
     }
 
     /// 박자 추가: 현재 분할 펄스 수만큼 약박으로 채운 행을 추가(최대 12).

@@ -3,7 +3,8 @@ import SwiftUI
 
 /// 박자별 악센트 바 그룹을 렌더링합니다.
 /// 각 그룹 = 메인 바 1개(width 28) + (pulses-1) 서브 바(width 11), 아래에 박자 번호.
-/// 바를 클릭하면 `onCycle` 을 통해 모델이 해당 칸의 강세 레벨을 순환합니다.
+/// 바를 클릭하면 `onCycle` 을 통해 모델이 해당 칸의 강세 레벨을 순환하고,
+/// 우클릭 컨텍스트 메뉴에서는 `onSet` 으로 레벨을 직접 지정합니다.
 /// 재생 중에는 `activeBeat` 그룹을 시각적으로 강조합니다.
 struct AccentBarsView: View {
     /// 박자별 펄스 강세 그리드 (grid[beat][pulse]). 표시 전용(읽기)입니다.
@@ -12,6 +13,8 @@ struct AccentBarsView: View {
     var activePulse: (beat: Int, pulse: Int)? = nil
     /// 바 탭을 모델(`cycleCell`)로 라우팅하는 클로저입니다.
     let onCycle: (Int, Int) -> Void
+    /// 컨텍스트 메뉴에서 강세를 직접 지정할 때 호출합니다(beat, pulse, level).
+    let onSet: (Int, Int, AccentLevel) -> Void
 
     // MARK: - Layout 상수 (폭 계산과 바 렌더가 공유하는 단일 소스)
 
@@ -148,9 +151,8 @@ struct AccentBarsView: View {
                     // 활성 펄스: 현재 울리는 (박, 펄스)와 정확히 일치하는 바 하나.
                     let isActive = activePulse?.beat == beatIndex
                         && activePulse?.pulse == pulseIndex
-                    bar(level: level, isMain: pulseIndex == 0, isActive: isActive) {
-                        onCycle(beatIndex, pulseIndex)
-                    }
+                    bar(beatIndex: beatIndex, pulseIndex: pulseIndex,
+                        level: level, isMain: pulseIndex == 0, isActive: isActive)
                 }
             }
             .frame(height: 64, alignment: .bottom)
@@ -163,8 +165,13 @@ struct AccentBarsView: View {
         .padding(.horizontal, 6)
     }
 
-    @ViewBuilder
-    private func bar(level: AccentLevel, isMain: Bool, isActive: Bool, onTap: @escaping () -> Void) -> some View {
+    /// 바 하나를 그립니다.
+    ///
+    /// 히트 영역은 바 모양이 아니라 컨테이너 높이(64) 전체를 덮습니다.
+    /// 예전에는 `contentShape(shape)` 때문에 무음 서브바의 클릭 대상이
+    /// 11×10pt 밖에 되지 않아 사실상 조준이 불가능했습니다.
+    private func bar(beatIndex: Int, pulseIndex: Int,
+                     level: AccentLevel, isMain: Bool, isActive: Bool) -> some View {
         let width: CGFloat = isMain ? Self.mainBarWidth : Self.subBarWidth
         let height = isMain ? level.mainHeight : level.subHeight
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.bar, style: .continuous)
@@ -172,22 +179,45 @@ struct AccentBarsView: View {
         let fill = isActive ? Theme.Colors.acc : level.fill
         let border = isActive ? Theme.Colors.acc : level.borderColor
 
-        shape
-            .fill(fill)
-            .overlay {
-                shape.strokeBorder(
-                    border,
-                    style: StrokeStyle(
-                        lineWidth: AccentLevel.borderWidth,
-                        dash: level.isDashed ? [3, 2.5] : []
+        return Button {
+            onCycle(beatIndex, pulseIndex)
+        } label: {
+            // 바닥 정렬된 실제 바 + 컨테이너 전체를 덮는 투명 히트 영역.
+            shape
+                .fill(fill)
+                .overlay {
+                    shape.strokeBorder(
+                        border,
+                        style: StrokeStyle(
+                            lineWidth: AccentLevel.borderWidth,
+                            dash: level.isDashed ? [3, 2.5] : []
+                        )
                     )
-                )
+                }
+                .frame(width: width, height: height)
+                .shadow(color: isActive ? Theme.Colors.accSoft : .clear, radius: isActive ? 6 : 0)
+                .frame(width: width, height: Self.barContainerHeight, alignment: .bottom)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableButtonStyle())
+        .animation(Theme.Motion.bar, value: level)
+        .animation(Theme.Motion.chip, value: isActive)
+        .contextMenu {
+            // 순환만 가능하면 한 단계 되돌리는 데 세 번 눌러야 하므로 직접 지정을 제공합니다.
+            ForEach(AccentLevel.allCases) { option in
+                Button {
+                    onSet(beatIndex, pulseIndex, option)
+                } label: {
+                    if option == level {
+                        Label(option.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(option.displayName)
+                    }
+                }
             }
-            .frame(width: width, height: height)
-            .shadow(color: isActive ? Theme.Colors.accSoft : .clear, radius: isActive ? 6 : 0)
-            .contentShape(shape)
-            .onTapGesture(perform: onTap)
-            .animation(Theme.Motion.bar, value: level)
-            .animation(Theme.Motion.chip, value: isActive)
+        }
+        .accessibilityLabel("\(beatIndex + 1)박 \(pulseIndex + 1)번째 펄스")
+        .accessibilityValue(level.displayName)
+        .accessibilityHint("누르면 다음 강세로 바뀝니다")
     }
 }

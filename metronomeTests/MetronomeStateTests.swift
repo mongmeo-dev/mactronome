@@ -48,6 +48,38 @@ final class MetronomeStateTests: XCTestCase {
         XCTAssertEqual(state.grid[1][0], .medium)
     }
 
+    /// 컨텍스트 메뉴에서 강세를 직접 지정할 수 있어야 합니다.
+    /// (순환만 있으면 강박 → 중강 으로 한 단계 되돌리는 데 세 번 눌러야 합니다.)
+    func test_setCell_assignsLevelDirectly() {
+        let state = MetronomeState()
+        state.setCell(beat: 0, pulse: 0, level: .medium)
+        XCTAssertEqual(state.grid[0][0], .medium)
+        state.setCell(beat: 0, pulse: 0, level: .mute)
+        XCTAssertEqual(state.grid[0][0], .mute)
+    }
+
+    /// 범위를 벗어난 좌표는 무시해야 합니다(그리드 리사이즈 중 들어온 입력 방어).
+    func test_outOfBoundsCell_isIgnored() {
+        let state = MetronomeState()
+        let before = state.grid
+        state.cycleCell(beat: 99, pulse: 0)
+        state.cycleCell(beat: 0, pulse: 99)
+        state.cycleCell(beat: -1, pulse: 0)
+        state.setCell(beat: 99, pulse: 0, level: .strong)
+        state.setCell(beat: 0, pulse: -1, level: .strong)
+        XCTAssertEqual(state.grid, before)
+    }
+
+    /// 좌표 유효성 판정이 실제 그리드 크기를 따라야 합니다.
+    func test_isValidCell_tracksGridSize() {
+        let state = MetronomeState()
+        XCTAssertTrue(state.isValidCell(beat: 0, pulse: 0))
+        XCTAssertFalse(state.isValidCell(beat: 0, pulse: 1))
+        state.setSubdivision(1) // 펄스 2개로 확장
+        XCTAssertTrue(state.isValidCell(beat: 0, pulse: 1))
+        XCTAssertFalse(state.isValidCell(beat: state.grid.count, pulse: 0))
+    }
+
     func test_addBeat_appendsRowOfWeak_withPulsesPerBeatCount() {
         let state = MetronomeState()
         let beforeCount = state.grid.count

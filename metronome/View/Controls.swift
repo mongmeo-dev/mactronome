@@ -1,6 +1,42 @@
 // metronome/View/Controls.swift
 import SwiftUI
 
+/// 눌림 상태를 시각적으로 알려주는 공용 버튼 스타일입니다.
+///
+/// `.buttonStyle(.plain)` 은 눌림 렌더링까지 제거하기 때문에,
+/// 앱의 모든 커스텀 버튼이 눌러도 아무 변화가 없었습니다.
+/// 특히 리듬에 맞춰 연타하는 TAP 버튼에서는 입력이 먹었는지 확인할 방법이
+/// 소리밖에 없었습니다.
+struct PressableButtonStyle: ButtonStyle {
+    /// 눌렀을 때 축소 배율입니다.
+    var pressedScale: CGFloat = 0.96
+    /// 눌렀을 때 불투명도입니다.
+    var pressedOpacity: Double = 0.7
+
+    func makeBody(configuration: Configuration) -> some View {
+        PressedLabel(configuration: configuration,
+             pressedScale: pressedScale,
+             pressedOpacity: pressedOpacity)
+    }
+
+    /// 환경값(`accessibilityReduceMotion`)을 구독하려면 실제 View 여야 하므로 분리합니다.
+    /// (`Body` 는 ButtonStyle 의 associatedtype 이름이라 사용할 수 없습니다.)
+    private struct PressedLabel: View {
+        let configuration: PressableButtonStyle.Configuration
+        let pressedScale: CGFloat
+        let pressedOpacity: Double
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        var body: some View {
+            configuration.label
+                // 모션 감소 시에는 크기 변화 없이 불투명도만으로 피드백합니다.
+                .scaleEffect(configuration.isPressed && !reduceMotion ? pressedScale : 1)
+                .opacity(configuration.isPressed ? pressedOpacity : 1)
+                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+        }
+    }
+}
+
 /// 올라온 표면 위의 라운드 사각형 버튼(−/+ 등). 크기와 폰트 사이즈를 지정합니다.
 struct RoundButton: View {
     let symbol: String
