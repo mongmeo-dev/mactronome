@@ -202,10 +202,58 @@ struct MetronomeScreen: View {
             DisplaySettingsView(state: state)
                 .padding(.bottom, 18)
 
-            // 10. 시작 + TAP
+            // 10. 오디오 실패 배너 + 시작/TAP
+            if let message = state.lastError {
+                errorBanner(message)
+                    .padding(.bottom, 10)
+            }
             transportRow
         }
         .padding(Theme.Layout.contentPadding)
+    }
+
+    // MARK: - Error banner
+
+    /// 오디오 엔진 시작 실패를 사용자에게 알립니다.
+    /// 이 배너가 없던 시절에는 시작 버튼을 눌러도 아무 반응 없이 조용히 실패했습니다.
+    private func errorBanner(_ message: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.Colors.danger)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("사운드를 시작하지 못했습니다")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.ink)
+                Text(message)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.Colors.mut)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            Button {
+                state.lastError = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.mut)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("오류 메시지 닫기")
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
+                .fill(Theme.Colors.dangerSoft)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
+                .strokeBorder(Theme.Colors.danger.opacity(0.4), lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("사운드를 시작하지 못했습니다. \(message)")
     }
 
     /// 재생 중 마디 번호(또는 카운트인 잔여)를 표시합니다. 정지 시에도 높이를 유지해 레이아웃 흔들림을 막습니다.

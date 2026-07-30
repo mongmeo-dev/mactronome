@@ -45,6 +45,11 @@ enum Theme {
         /// 흰 글자(2.6:1)가 아니라 어두운 글자(약 7:1)를 올려야 합니다.
         static let onAccent = Color.dynamicHex(0xFFFFFF, 0x141311)
 
+        /// 오류 강조색. 배경(bg/dangerSoft) 위에서 AA 를 만족하도록 명도를 잡았습니다.
+        static let danger = Color.dynamicHex(0xB3261E, 0xF2B8B5)
+        /// 오류 배너 배경.
+        static let dangerSoft = Color.dynamicHex(0xFCEEEE, 0x3B2523)
+
     }
 
     // MARK: - Radius

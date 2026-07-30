@@ -133,6 +133,20 @@ final class ThemeContrastTests: XCTestCase {
         }
     }
 
+    // MARK: - 오류 배너
+
+    /// 오류 배너의 아이콘/본문 텍스트도 배너 배경 위에서 읽혀야 합니다.
+    func test_errorBanner_meetsAA() {
+        for dark in [false, true] {
+            assertContrast(Theme.Colors.danger, on: Theme.Colors.dangerSoft, dark: dark,
+                           atLeast: 4.5, "danger on dangerSoft")
+            assertContrast(Theme.Colors.ink, on: Theme.Colors.dangerSoft, dark: dark,
+                           atLeast: 4.5, "ink on dangerSoft")
+            assertContrast(Theme.Colors.mut, on: Theme.Colors.dangerSoft, dark: dark,
+                           atLeast: 4.5, "mut on dangerSoft")
+        }
+    }
+
     // MARK: - 액센트 배경 (시작 버튼)
 
     func test_onAccent_meetsAA() {
