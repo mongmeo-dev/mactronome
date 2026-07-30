@@ -66,6 +66,8 @@ enum Theme {
 
     enum Layout {
         static let windowWidth: CGFloat = 452
+        /// 컴팩트(미니) 모드 창 폭입니다.
+        static let compactWindowWidth: CGFloat = 260
         static let contentPadding = EdgeInsets(top: 24, leading: 30, bottom: 28, trailing: 30)
         /// 시스템 타이틀바(hiddenTitleBar)와 같은 높이로 맞춥니다.
         static let titleBarHeight: CGFloat = 28

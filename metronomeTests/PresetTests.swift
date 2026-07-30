@@ -63,6 +63,34 @@ final class PresetTests: XCTestCase {
         XCTAssertEqual(b.presets[0].settings.bpm, 111)
     }
 
+    /// 프리셋은 "BPM·박자·강세·사운드·연습" 만 되돌립니다.
+    /// 표시/창 설정(화면 모드·항상 위에·플래시·컴팩트)까지 덮어쓰면
+    /// 프리셋을 불러오는 순간 다크 모드가 풀리거나 창 크기가 바뀌어 버립니다.
+    func test_applyPreset_doesNotTouchWindowPreferences() {
+        let state = MetronomeState(store: makeStore())
+        state.appearance = .light
+        state.floating = false
+        state.visualFlash = false
+        state.compact = false
+        state.setBPM(90)
+        state.saveCurrentAsPreset(named: "밝은 설정")
+
+        // 창/표시 설정을 바꾼 뒤 프리셋을 적용합니다.
+        state.appearance = .dark
+        state.floating = true
+        state.visualFlash = true
+        state.compact = true
+        state.setBPM(200)
+
+        state.applyPreset(state.presets[0])
+
+        XCTAssertEqual(state.bpm, 90, "음악 설정은 되돌아와야 합니다")
+        XCTAssertEqual(state.appearance, .dark, "화면 모드는 유지되어야 합니다")
+        XCTAssertTrue(state.floating, "항상 위에는 유지되어야 합니다")
+        XCTAssertTrue(state.visualFlash, "비주얼 플래시는 유지되어야 합니다")
+        XCTAssertTrue(state.compact, "컴팩트 모드는 유지되어야 합니다")
+    }
+
     func test_noStore_presetsAreInMemoryOnly() {
         let state = MetronomeState() // store nil
         state.saveCurrentAsPreset(named: "메모리")

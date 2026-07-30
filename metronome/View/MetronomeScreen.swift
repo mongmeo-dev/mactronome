@@ -38,9 +38,13 @@ struct MetronomeScreen: View {
     var body: some View {
         VStack(spacing: 0) {
             titleBar
-            content
+            if state.compact {
+                compactContent
+            } else {
+                content
+            }
         }
-        .frame(width: Theme.Layout.windowWidth)
+        .frame(width: state.compact ? Theme.Layout.compactWindowWidth : Theme.Layout.windowWidth)
         .background(Theme.Colors.bg)
         .overlay {
             // 비주얼 플래시: 강박은 더 밝게, 약박은 은은하게.
@@ -138,6 +142,20 @@ struct MetronomeScreen: View {
             HStack(spacing: 0) {
                 Color.clear.frame(width: Theme.Layout.trafficLightInset)
                 Spacer()
+                Button {
+                    state.compact.toggle()
+                } label: {
+                    Image(systemName: state.compact
+                          ? "arrow.up.left.and.arrow.down.right"
+                          : "arrow.down.right.and.arrow.up.left")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Theme.Colors.mut)
+                        .frame(width: 26, height: 22)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PressableButtonStyle())
+                .help(state.compact ? "일반 모드 (⌘⇧C)" : "컴팩트 모드 (⌘⇧C)")
+                .accessibilityLabel(state.compact ? "일반 모드로 전환" : "컴팩트 모드로 전환")
                 SettingsLink {
                     Image(systemName: "gearshape")
                         .font(.system(size: 12))
@@ -151,7 +169,7 @@ struct MetronomeScreen: View {
             }
             .padding(.trailing, 8)
 
-            Text("Metronome")
+            Text(state.compact ? "" : "Metronome")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Theme.Colors.mut)
         }
@@ -230,6 +248,72 @@ struct MetronomeScreen: View {
             transportRow
         }
         .padding(Theme.Layout.contentPadding)
+    }
+
+    // MARK: - Compact content
+
+    /// 컴팩트(미니) 모드 본문입니다.
+    ///
+    /// "항상 위에" 로 띄워 놓고 연주할 때 필요한 것만 남깁니다.
+    /// 박자 점 / BPM / 트랜스포트. 편집은 일반 모드에서 합니다.
+    private var compactContent: some View {
+        VStack(spacing: 14) {
+            compactBeatDots
+
+            HStack(alignment: .center, spacing: 14) {
+                RoundButton(symbol: "−", size: 28, fontSize: 17) {
+                    state.setBPM(state.bpm - 1)
+                }
+                .help("BPM −1 (←)")
+                VStack(spacing: 1) {
+                    Text("\(Int(state.bpm))")
+                        .font(.monoTabular(size: 40, weight: .semibold))
+                        .foregroundStyle(Theme.Colors.ink)
+                        .fixedSize()
+                    barIndicator
+                }
+                .frame(minWidth: 92)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("BPM \(Int(state.bpm))")
+                RoundButton(symbol: "+", size: 28, fontSize: 17) {
+                    state.setBPM(state.bpm + 1)
+                }
+                .help("BPM +1 (→)")
+            }
+
+            if let message = state.lastError {
+                errorBanner(message)
+            }
+
+            transportRow
+        }
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
+        .padding(.bottom, 18)
+    }
+
+    /// 컴팩트 모드의 박자 점 표시입니다. 현재 울리는 박만 액센트로 채웁니다.
+    /// 분할 펄스는 표시하지 않습니다(점이 너무 촘촘해져 오히려 읽기 어려워집니다).
+    private var compactBeatDots: some View {
+        HStack(spacing: 6) {
+            ForEach(Array(state.grid.enumerated()), id: \.offset) { beatIndex, row in
+                let isActive = activePulse?.beat == beatIndex
+                // 박의 첫 펄스 강세로 점의 채움 여부를 정합니다.
+                let isAccent = (row.first ?? .weak) == .strong
+                Circle()
+                    .fill(isActive ? Theme.Colors.acc : Color.clear)
+                    .overlay {
+                        Circle().strokeBorder(
+                            isActive ? Theme.Colors.acc : Theme.Colors.barWeakBorder,
+                            lineWidth: isAccent ? 2 : 1
+                        )
+                    }
+                    .frame(width: isAccent ? 10 : 7, height: isAccent ? 10 : 7)
+                    .animation(Theme.Motion.chip, value: isActive)
+            }
+        }
+        .frame(height: 12)
+        .accessibilityHidden(true)
     }
 
     // MARK: - Error banner

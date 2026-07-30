@@ -27,6 +27,9 @@ struct MetronomeApp: App {
                     .keyboardShortcut(.downArrow, modifiers: [.command])
                 Button("탬포 탭") { state.tap() }
                     .keyboardShortcut("t", modifiers: [.command])
+                Divider()
+                Button(state.compact ? "일반 모드" : "컴팩트 모드") { state.compact.toggle() }
+                    .keyboardShortcut("c", modifiers: [.command, .shift])
             }
         }
 

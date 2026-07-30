@@ -28,11 +28,14 @@ struct MetronomeSettings: Codable, Equatable {
     var appearance: AppAppearance
     /// 창을 항상 위에 표시할지 여부.
     var floating: Bool
+    /// 컴팩트(미니) 창 모드 사용 여부.
+    var compact: Bool
 
     init(bpm: Double, denom: String, subIdx: Int, grid: [[Int]], sound: ClickSound, volume: Double,
          trainerEnabled: Bool = false, trainerEveryBars: Int = 2, trainerBPMStep: Int = 5,
          trainerTargetBPM: Int = 180, countInBars: Int = 0, polyPulses: Int = 0,
-         visualFlash: Bool = false, appearance: AppAppearance = .system, floating: Bool = false) {
+         visualFlash: Bool = false, appearance: AppAppearance = .system, floating: Bool = false,
+         compact: Bool = false) {
         self.bpm = bpm
         self.denom = denom
         self.subIdx = subIdx
@@ -48,6 +51,7 @@ struct MetronomeSettings: Codable, Equatable {
         self.visualFlash = visualFlash
         self.appearance = appearance
         self.floating = floating
+        self.compact = compact
     }
 
     // 구버전 저장본(신규 필드 부재)과 호환되도록 누락 키에 기본값을 채웁니다.
@@ -68,5 +72,6 @@ struct MetronomeSettings: Codable, Equatable {
         visualFlash = try c.decodeIfPresent(Bool.self, forKey: .visualFlash) ?? false
         appearance = try c.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         floating = try c.decodeIfPresent(Bool.self, forKey: .floating) ?? false
+        compact = try c.decodeIfPresent(Bool.self, forKey: .compact) ?? false
     }
 }

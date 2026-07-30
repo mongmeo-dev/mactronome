@@ -62,6 +62,8 @@ final class MetronomeState: ObservableObject {
     @Published var appearance: AppAppearance = .system { didSet { persist() } }
     /// 창을 항상 위에 표시할지 여부.
     @Published var floating: Bool = false { didSet { persist() } }
+    /// 컴팩트(미니) 창 모드입니다. 항상 위에 띄워 놓고 연주할 때 씁니다.
+    @Published var compact: Bool = false { didSet { persist() } }
 
     /// 재생 중 현재 마디 번호(1부터). 정지 시 0.
     @Published private(set) var currentBar: Int = 0
@@ -119,7 +121,8 @@ final class MetronomeState: ObservableObject {
             trainerEnabled: trainerEnabled, trainerEveryBars: trainerEveryBars,
             trainerBPMStep: trainerBPMStep, trainerTargetBPM: trainerTargetBPM,
             countInBars: countInBars, polyPulses: polyPulses,
-            visualFlash: visualFlash, appearance: appearance, floating: floating
+            visualFlash: visualFlash, appearance: appearance, floating: floating,
+            compact: compact
         )
     }
 
@@ -127,11 +130,16 @@ final class MetronomeState: ObservableObject {
     private func loadSettings(from store: UserDefaults) {
         guard let data = store.data(forKey: Self.settingsKey),
               let s = try? JSONDecoder().decode(MetronomeSettings.self, from: data) else { return }
-        applySettings(s)
+        applySettings(s, includingWindowPrefs: true)
     }
 
     /// 설정 스냅샷을 상태에 반영합니다(범위 클램프 포함). 프리셋 적용/복원에서 공유합니다.
-    private func applySettings(_ s: MetronomeSettings) {
+    ///
+    /// - Parameter includingWindowPrefs: 표시/창 설정(플래시·화면 모드·항상 위에·컴팩트)까지
+    ///   덮어쓸지 여부입니다. 앱 시작 복원에서는 true, 프리셋 적용에서는 false 입니다.
+    ///   프리셋은 "BPM·박자·강세·사운드·연습" 을 저장한다고 안내하므로,
+    ///   프리셋을 불러왔다고 다크 모드나 항상 위에 설정이 바뀌면 안 됩니다.
+    private func applySettings(_ s: MetronomeSettings, includingWindowPrefs: Bool) {
         bpm = min(max(s.bpm, Self.bpmRange.lowerBound), Self.bpmRange.upperBound)
         denom = s.denom
         subIdx = min(max(s.subIdx, 0), Self.subCounts.count - 1)
@@ -145,9 +153,11 @@ final class MetronomeState: ObservableObject {
         trainerTargetBPM = s.trainerTargetBPM
         countInBars = max(0, s.countInBars)
         polyPulses = max(0, s.polyPulses)
+        guard includingWindowPrefs else { return }
         visualFlash = s.visualFlash
         appearance = s.appearance
         floating = s.floating
+        compact = s.compact
     }
 
     /// 현재 상태를 저장소에 기록합니다. store가 없거나 로드 전이면 무시합니다.
@@ -176,8 +186,9 @@ final class MetronomeState: ObservableObject {
     }
 
     /// 프리셋을 현재 상태에 적용합니다(현재 설정 영속화도 트리거됩니다).
+    /// 표시/창 설정은 프리셋 범위가 아니므로 건드리지 않습니다.
     func applyPreset(_ preset: Preset) {
-        applySettings(preset.settings)
+        applySettings(preset.settings, includingWindowPrefs: false)
     }
 
     /// 프리셋을 삭제합니다.

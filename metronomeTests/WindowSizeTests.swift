@@ -62,6 +62,28 @@ final class WindowSizeTests: XCTestCase {
                        "악센트 바 영역 외에 창 높이를 늘리는 요소가 생겼습니다")
     }
 
+    /// 컴팩트 모드는 일반 모드보다 훨씬 작아야 합니다(항상 위에 띄워 두는 용도).
+    func test_compactMode_isMuchSmaller() {
+        let normal = measure(MetronomeState())
+
+        let state = MetronomeState()
+        state.compact = true
+        let compact = measure(state)
+
+        XCTAssertEqual(compact.width, Theme.Layout.compactWindowWidth, accuracy: 1.0)
+        XCTAssertLessThan(compact.height, normal.height / 2,
+                          "컴팩트 높이 \(compact.height)pt 가 일반 \(normal.height)pt 의 절반 이상입니다")
+    }
+
+    /// 컴팩트 모드는 박자 수가 늘어도 창이 눈에 띄게 커지면 안 됩니다.
+    func test_compactMode_staysSmallWithManyBeats() {
+        let state = MetronomeState()
+        state.compact = true
+        let before = measure(state).height
+        while state.grid.count < 12 { state.addBeat() }
+        XCTAssertEqual(measure(state).height, before, accuracy: 1.0)
+    }
+
     /// 창 폭은 디자인 폭에 고정되어야 합니다(가로 스크롤/잘림 방지).
     func test_windowWidth_matchesDesign() {
         let size = measure(MetronomeState())
