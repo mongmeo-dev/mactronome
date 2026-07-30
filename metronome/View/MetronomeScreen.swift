@@ -108,7 +108,7 @@ struct MetronomeScreen: View {
         state.engine.beatChannel.latest().sequence
     }
 
-    // MARK: - Title bar (신호등 + 제목)
+    // MARK: - Title bar (제목)
 
     private var titleBar: some View {
         ZStack {
@@ -116,15 +116,11 @@ struct MetronomeScreen: View {
                 colors: [Theme.Colors.titleBarTop, Theme.Colors.titleBarBottom],
                 startPoint: .top, endPoint: .bottom
             )
-            HStack(spacing: 8) {
-                HStack(spacing: 8) {
-                    trafficLight(Theme.Colors.trafficRed)
-                    trafficLight(Theme.Colors.trafficYellow)
-                    trafficLight(Theme.Colors.trafficGreen)
-                }
+            // 좌상단은 시스템 신호등 버튼이 겹쳐 그려지는 영역이라 비워 둡니다.
+            HStack(spacing: 0) {
+                Color.clear.frame(width: Theme.Layout.trafficLightInset)
                 Spacer()
             }
-            .padding(.horizontal, 15)
 
             Text("Metronome")
                 .font(.system(size: 13, weight: .medium))
@@ -136,9 +132,6 @@ struct MetronomeScreen: View {
         }
     }
 
-    private func trafficLight(_ color: Color) -> some View {
-        Circle().fill(color).frame(width: 12, height: 12)
-    }
 
     // MARK: - Content
 

@@ -36,10 +36,6 @@ enum Theme {
         static let titleBarTop = Color.dynamicHex(0xF3F2EF, 0x2C2A27)
         static let titleBarBottom = Color.dynamicHex(0xECEAE6, 0x242320)
 
-        /// 신호등(외관 무관 고정)
-        static let trafficRed = Color(hex: 0xFF5F57)
-        static let trafficYellow = Color(hex: 0xFEBC2E)
-        static let trafficGreen = Color(hex: 0x28C840)
     }
 
     // MARK: - Radius
@@ -57,7 +53,10 @@ enum Theme {
     enum Layout {
         static let windowWidth: CGFloat = 452
         static let contentPadding = EdgeInsets(top: 24, leading: 30, bottom: 28, trailing: 30)
-        static let titleBarHeight: CGFloat = 40
+        /// 시스템 타이틀바(hiddenTitleBar)와 같은 높이로 맞춥니다.
+        static let titleBarHeight: CGFloat = 28
+        /// 시스템 신호등 버튼이 차지하는 좌측 영역 폭입니다.
+        static let trafficLightInset: CGFloat = 78
     }
 
     // MARK: - Motion
