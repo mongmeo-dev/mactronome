@@ -43,6 +43,11 @@ struct RoundButton: View {
     var size: CGFloat = 38
     var fontSize: CGFloat = 20
     var background: Color = Theme.Colors.surfaceRaised
+    /// 접근성 레이블입니다. 기호만으로는 "무엇을" 증감하는지 알 수 없으므로
+    /// 호출부에서 반드시 맥락을 담은 문구를 넘깁니다.
+    let label: String
+    /// 마우스 오버 툴팁입니다. 단축키가 있으면 함께 적습니다.
+    var hint: String?
     let action: () -> Void
 
     var body: some View {
@@ -62,7 +67,8 @@ struct RoundButton: View {
                 .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
         }
         .buttonStyle(PressableButtonStyle())
-        .accessibilityLabel(symbol == "−" ? "감소" : (symbol == "+" ? "증가" : symbol))
+        .accessibilityLabel(label)
+        .help(hint ?? label)
     }
 }
 

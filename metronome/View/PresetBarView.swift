@@ -41,6 +41,7 @@ struct PresetBarView: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .accessibilityLabel("프리셋 불러오기")
+            .help("저장한 프리셋 불러오기 / 삭제")
 
             Spacer()
 
@@ -54,6 +55,7 @@ struct PresetBarView: View {
             }
             .buttonStyle(PressableButtonStyle())
             .accessibilityLabel("현재 설정을 프리셋으로 저장")
+            .help("현재 BPM·박자·강세·사운드·연습 설정을 이름 붙여 저장합니다")
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 10)

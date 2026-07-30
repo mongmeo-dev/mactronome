@@ -21,11 +21,17 @@ struct MetronomeApp: App {
                 Button(state.isPlaying ? "정지" : "시작") { state.togglePlay() }
                     .keyboardShortcut("p", modifiers: [.command])
                 Divider()
-                Button("BPM +1") { state.setBPM(state.bpm + 1) }
+                // 창 안의 방향키(↑↓ ±10, ←→ ±1)와 증감폭을 일치시킵니다.
+                // 이전에는 ⌘↑ 가 +1 이라 창 안 ↑(+10)와 어긋났습니다.
+                Button("BPM +10") { state.setBPM(state.bpm + 10) }
                     .keyboardShortcut(.upArrow, modifiers: [.command])
-                Button("BPM −1") { state.setBPM(state.bpm - 1) }
+                Button("BPM −10") { state.setBPM(state.bpm - 10) }
                     .keyboardShortcut(.downArrow, modifiers: [.command])
-                Button("탬포 탭") { state.tap() }
+                Button("BPM +1") { state.setBPM(state.bpm + 1) }
+                    .keyboardShortcut(.rightArrow, modifiers: [.command])
+                Button("BPM −1") { state.setBPM(state.bpm - 1) }
+                    .keyboardShortcut(.leftArrow, modifiers: [.command])
+                Button("템포 탭") { state.tap() }
                     .keyboardShortcut("t", modifiers: [.command])
                 Divider()
                 Button(state.compact ? "일반 모드" : "컴팩트 모드") { state.compact.toggle() }

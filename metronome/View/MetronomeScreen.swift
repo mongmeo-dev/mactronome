@@ -261,10 +261,10 @@ struct MetronomeScreen: View {
             compactBeatDots
 
             HStack(alignment: .center, spacing: 14) {
-                RoundButton(symbol: "−", size: 28, fontSize: 17) {
+                RoundButton(symbol: "−", size: 28, fontSize: 17,
+                            label: "BPM 1 감소", hint: "BPM −1 (← 또는 ⌘←)") {
                     state.setBPM(state.bpm - 1)
                 }
-                .help("BPM −1 (←)")
                 VStack(spacing: 1) {
                     Text("\(Int(state.bpm))")
                         .font(.monoTabular(size: 40, weight: .semibold))
@@ -275,10 +275,10 @@ struct MetronomeScreen: View {
                 .frame(minWidth: 92)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("BPM \(Int(state.bpm))")
-                RoundButton(symbol: "+", size: 28, fontSize: 17) {
+                RoundButton(symbol: "+", size: 28, fontSize: 17,
+                            label: "BPM 1 증가", hint: "BPM +1 (→ 또는 ⌘→)") {
                     state.setBPM(state.bpm + 1)
                 }
-                .help("BPM +1 (→)")
             }
 
             if let message = state.lastError {
@@ -384,7 +384,8 @@ struct MetronomeScreen: View {
 
     private var bpmReadout: some View {
         HStack(alignment: .bottom, spacing: 20) {
-            RoundButton(symbol: "−", size: 34, fontSize: 20) {
+            RoundButton(symbol: "−", size: 34, fontSize: 20,
+                        label: "BPM 1 감소", hint: "BPM −1 (← 또는 ⌘←)") {
                 state.setBPM(state.bpm - 1)
             }
             if editingBPM {
@@ -408,9 +409,11 @@ struct MetronomeScreen: View {
                     .fixedSize()
                     .contentShape(Rectangle())
                     .onTapGesture { beginEditingBPM() }
+                    .help("클릭해 직접 입력 · ↑↓ ±10 · ←→ ±1")
                     .accessibilityLabel("BPM \(Int(state.bpm)), 탭하여 직접 입력")
             }
-            RoundButton(symbol: "+", size: 34, fontSize: 20) {
+            RoundButton(symbol: "+", size: 34, fontSize: 20,
+                        label: "BPM 1 증가", hint: "BPM +1 (→ 또는 ⌘→)") {
                 state.setBPM(state.bpm + 1)
             }
         }
@@ -456,7 +459,10 @@ struct MetronomeScreen: View {
             RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(Theme.Colors.panel)
         }
+        .accessibilityElement(children: .combine)
         .accessibilityLabel("볼륨")
+        .accessibilityValue("\(Int(state.volume * 100))퍼센트")
+        .help("볼륨")
     }
 
     // MARK: - Transport row (시작 / TAP)
@@ -493,6 +499,7 @@ struct MetronomeScreen: View {
             }
             .buttonStyle(PressableButtonStyle())
             .accessibilityLabel(state.isPlaying ? "정지" : "시작")
+            .help(state.isPlaying ? "정지 (Space 또는 ⌘P)" : "시작 (Space 또는 ⌘P)")
 
             // TAP 버튼: 올라온 표면 + 액센트 테두리. state.tap() 으로 탭 템포 기록.
             Button {
@@ -515,7 +522,9 @@ struct MetronomeScreen: View {
                     .shadow(color: .black.opacity(0.06), radius: 1.5, x: 0, y: 1)
             }
             .buttonStyle(PressableButtonStyle())
-            .accessibilityLabel("탬포 탭")
+            .accessibilityLabel("템포 탭")
+            .accessibilityHint("원하는 템포에 맞춰 반복해서 누르면 BPM 이 맞춰집니다")
+            .help("템포 탭 (⌘T) — 원하는 박자에 맞춰 두드리세요")
         }
     }
 
