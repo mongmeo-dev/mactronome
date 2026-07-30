@@ -51,7 +51,7 @@ struct SubdivisionGridView: View {
             .padding(.bottom, 8)
             .background {
                 RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)
-                    .fill(isOn ? Color.white : Theme.Colors.panel)
+                    .fill(isOn ? Theme.Colors.surfaceRaised : Theme.Colors.panel)
             }
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)

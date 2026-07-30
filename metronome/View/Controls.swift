@@ -1,12 +1,12 @@
 // metronome/View/Controls.swift
 import SwiftUI
 
-/// 흰 배경의 라운드 사각형 버튼(−/+ 등). 크기와 폰트 사이즈를 지정합니다.
+/// 올라온 표면 위의 라운드 사각형 버튼(−/+ 등). 크기와 폰트 사이즈를 지정합니다.
 struct RoundButton: View {
     let symbol: String
     var size: CGFloat = 38
     var fontSize: CGFloat = 20
-    var background: Color = .white
+    var background: Color = Theme.Colors.surfaceRaised
     let action: () -> Void
 
     var body: some View {
@@ -45,7 +45,7 @@ struct DenomChip: View {
                 .padding(.vertical, 6)
                 .background {
                     RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)
-                        .fill(isOn ? Color.white : Theme.Colors.panel)
+                        .fill(isOn ? Theme.Colors.surfaceRaised : Theme.Colors.panel)
                 }
                 .overlay {
                     RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)

@@ -48,13 +48,13 @@ struct TimeSignatureEditorView: View {
     private var numeratorStepper: some View {
         HStack(spacing: 8) {
             RoundButton(symbol: "−", size: 28, fontSize: 16,
-                        background: Theme.Colors.bg, action: onRemoveBeat)
+                        background: Theme.Colors.surfaceRaised, action: onRemoveBeat)
             Text("\(beatCount)")
                 .font(.monoTabular(size: 15, weight: .semibold))
                 .foregroundStyle(Theme.Colors.ink)
                 .frame(minWidth: 20)
             RoundButton(symbol: "+", size: 28, fontSize: 16,
-                        background: Theme.Colors.bg, action: onAddBeat)
+                        background: Theme.Colors.surfaceRaised, action: onAddBeat)
         }
     }
 

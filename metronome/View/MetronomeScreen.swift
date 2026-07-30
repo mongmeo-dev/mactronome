@@ -357,17 +357,17 @@ struct MetronomeScreen: View {
                     if state.isPlaying {
                         // 정지 사각형
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .fill(.white)
+                            .fill(Theme.Colors.onAccent)
                             .frame(width: 13, height: 13)
                     } else {
                         PlayTriangle()
-                            .fill(.white)
+                            .fill(Theme.Colors.onAccent)
                             .frame(width: 15, height: 17)
                     }
                     Text(state.isPlaying ? "정지" : "시작")
                         .font(.system(size: 13, weight: .semibold))
                         .tracking(0.39)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Theme.Colors.onAccent)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 46)
@@ -380,7 +380,7 @@ struct MetronomeScreen: View {
             .buttonStyle(.plain)
             .accessibilityLabel(state.isPlaying ? "정지" : "시작")
 
-            // TAP 버튼: 흰 배경 + 액센트 테두리. state.tap() 으로 탭 템포 기록.
+            // TAP 버튼: 올라온 표면 + 액센트 테두리. state.tap() 으로 탭 템포 기록.
             Button {
                 state.tap()
             } label: {
@@ -392,7 +392,7 @@ struct MetronomeScreen: View {
                     .frame(height: 46)
                     .background {
                         RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)
-                            .fill(.white)
+                            .fill(Theme.Colors.surfaceRaised)
                     }
                     .overlay {
                         RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous)

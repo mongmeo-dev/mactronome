@@ -14,20 +14,22 @@ enum Theme {
         static let panel = Color.dynamicHex(0xF1F0ED, 0x2A2825)
         /// 잉크(주 텍스트/강박)
         static let ink = Color.dynamicHex(0x1C1B19, 0xEDECE8)
-        /// 보조 텍스트
-        static let mut = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.5, darkOpacity: 0.55)
-        /// 약보조 텍스트
-        static let mut2 = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.35, darkOpacity: 0.4)
+        /// 보조 텍스트. 라이트/다크 모두 panel 배경 기준 WCAG AA(4.5:1)를 넘도록 잡았습니다.
+        /// (라이트 약 7.5:1, 다크 약 5.8:1)
+        static let mut = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.78, darkOpacity: 0.62)
+        /// 약보조 텍스트. 10~12pt 캡션에도 쓰이므로 AA 하한을 지킵니다.
+        /// (라이트 약 5.0:1, 다크 약 4.8:1)
+        static let mut2 = Color.dynamicHex(0x1C1B19, 0xEDECE8, lightOpacity: 0.66, darkOpacity: 0.54)
         /// 경계선
-        static let bd = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.09, darkOpacity: 0.14)
+        static let bd = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.14, darkOpacity: 0.18)
 
         /// 액센트(슬레이트 블루). 다크에서는 대비를 위해 밝게.
         static let acc = Color.dynamicHex(0x677689, 0x93A2B5)
         /// 액센트 소프트(알파)
         static let accSoft = Color.dynamicHex(0x677689, 0x93A2B5, lightOpacity: 0.12, darkOpacity: 0.24)
 
-        /// 약박 실선 경계
-        static let barWeakBorder = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.28, darkOpacity: 0.32)
+        /// 약박 실선 경계. 조작 대상 윤곽이라 비텍스트 대비 3:1 이상을 확보합니다.
+        static let barWeakBorder = Color.dynamicHex(0x1C1B19, 0xFFFFFF, lightOpacity: 0.5, darkOpacity: 0.4)
 
         /// 데스크(윈도우 바깥)
         static let desk = Color.dynamicHex(0xE9E7E2, 0x141311)
@@ -35,6 +37,13 @@ enum Theme {
         /// 타이틀바 그라디언트 상/하
         static let titleBarTop = Color.dynamicHex(0xF3F2EF, 0x2C2A27)
         static let titleBarBottom = Color.dynamicHex(0xECEAE6, 0x242320)
+
+        /// 올라온 표면(선택된 칩/타일, 라운드 버튼). 다크에서 흰색을 그대로 쓰면
+        /// 그 위의 ink 텍스트가 1.2:1 로 사라지므로 반드시 이 토큰을 사용합니다.
+        static let surfaceRaised = Color.dynamicHex(0xFFFFFF, 0x3A3733)
+        /// acc 를 배경으로 깔았을 때의 전경색. 다크의 acc 는 밝은 슬레이트라
+        /// 흰 글자(2.6:1)가 아니라 어두운 글자(약 7:1)를 올려야 합니다.
+        static let onAccent = Color.dynamicHex(0xFFFFFF, 0x141311)
 
     }
 
