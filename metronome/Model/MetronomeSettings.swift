@@ -74,4 +74,24 @@ struct MetronomeSettings: Codable, Equatable {
         floating = try c.decodeIfPresent(Bool.self, forKey: .floating) ?? false
         compact = try c.decodeIfPresent(Bool.self, forKey: .compact) ?? false
     }
+
+    /// 프리셋 동일성 판정용 비교입니다.
+    ///
+    /// 프리셋이 저장/복원하는 범위는 "BPM·박자·강세·사운드·연습" 이므로,
+    /// 표시/창 설정(플래시·화면 모드·항상 위에·컴팩트)은 비교에서 제외합니다.
+    /// 다크 모드를 켰다고 적용 중인 프리셋 표시가 사라지면 안 됩니다.
+    func musicallyEquals(_ other: MetronomeSettings) -> Bool {
+        bpm == other.bpm
+            && denom == other.denom
+            && subIdx == other.subIdx
+            && grid == other.grid
+            && sound == other.sound
+            && volume == other.volume
+            && trainerEnabled == other.trainerEnabled
+            && trainerEveryBars == other.trainerEveryBars
+            && trainerBPMStep == other.trainerBPMStep
+            && trainerTargetBPM == other.trainerTargetBPM
+            && countInBars == other.countInBars
+            && polyPulses == other.polyPulses
+    }
 }

@@ -191,6 +191,22 @@ final class MetronomeState: ObservableObject {
         applySettings(preset.settings, includingWindowPrefs: false)
     }
 
+    /// 현재 설정과 음악적으로 일치하는 프리셋 이름입니다. 없으면 nil.
+    ///
+    /// 별도 상태로 들고 있으면 BPM 을 하나만 바꿔도 "적용 중" 표시가 남아
+    /// 거짓말을 하게 되므로, 매번 현재 스냅샷과 비교해 도출합니다.
+    var activePresetName: String? {
+        let current = snapshot()
+        return presets.first { $0.settings.musicallyEquals(current) }?.name
+    }
+
+    /// 해당 이름의 프리셋이 이미 있는지 확인합니다(저장 시 덮어쓰기 경고용).
+    func presetExists(named name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        return presets.contains { $0.name == trimmed }
+    }
+
     /// 프리셋을 삭제합니다.
     func deletePreset(_ preset: Preset) {
         presets.removeAll { $0.id == preset.id }

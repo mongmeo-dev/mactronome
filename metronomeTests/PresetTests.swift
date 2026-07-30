@@ -91,6 +91,54 @@ final class PresetTests: XCTestCase {
         XCTAssertTrue(state.compact, "컴팩트 모드는 유지되어야 합니다")
     }
 
+    // MARK: - 적용 중 프리셋 표시
+
+    /// 프리셋을 적용하면 그 이름이 "적용 중"으로 표시되어야 합니다.
+    func test_activePresetName_reflectsAppliedPreset() {
+        let state = MetronomeState(store: makeStore())
+        state.setBPM(90)
+        state.saveCurrentAsPreset(named: "느린 연습")
+        XCTAssertEqual(state.activePresetName, "느린 연습")
+
+        state.setBPM(200)
+        XCTAssertNil(state.activePresetName, "설정을 바꾸면 적용 중 표시가 사라져야 합니다")
+
+        state.applyPreset(state.presets[0])
+        XCTAssertEqual(state.activePresetName, "느린 연습")
+    }
+
+    /// 표시/창 설정만 바꾼 경우에는 적용 중 표시가 유지되어야 합니다.
+    /// (프리셋은 음악 설정만 담습니다.)
+    func test_activePresetName_ignoresWindowPreferences() {
+        let state = MetronomeState(store: makeStore())
+        state.saveCurrentAsPreset(named: "기본")
+        XCTAssertEqual(state.activePresetName, "기본")
+
+        state.appearance = .dark
+        state.floating = true
+        state.compact = true
+        state.visualFlash = true
+        XCTAssertEqual(state.activePresetName, "기본",
+                       "다크 모드를 켰다고 적용 중 표시가 사라지면 안 됩니다")
+    }
+
+    /// 프리셋이 없으면 적용 중 표시도 없습니다.
+    func test_activePresetName_isNilWithoutPresets() {
+        XCTAssertNil(MetronomeState(store: makeStore()).activePresetName)
+    }
+
+    // MARK: - 덮어쓰기 경고
+
+    /// 같은 이름이 이미 있으면 뷰가 확인을 띄울 수 있도록 알려야 합니다.
+    func test_presetExists_detectsDuplicateName() {
+        let state = MetronomeState(store: makeStore())
+        state.saveCurrentAsPreset(named: "A")
+        XCTAssertTrue(state.presetExists(named: "A"))
+        XCTAssertTrue(state.presetExists(named: "  A  "), "공백은 다듬어 비교해야 합니다")
+        XCTAssertFalse(state.presetExists(named: "B"))
+        XCTAssertFalse(state.presetExists(named: "   "), "빈 이름은 중복으로 보지 않습니다")
+    }
+
     func test_noStore_presetsAreInMemoryOnly() {
         let state = MetronomeState() // store nil
         state.saveCurrentAsPreset(named: "메모리")
