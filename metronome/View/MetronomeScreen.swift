@@ -22,6 +22,10 @@ struct MetronomeScreen: View {
     @FocusState private var bpmFieldFocused: Bool
     /// 비주얼 플래시 오버레이의 현재 불투명도입니다.
     @State private var flashOpacity: Double = 0
+    /// 전체 화면 점멸의 점멸률을 WCAG 2.3.1 범위로 제한하는 정책입니다.
+    @State private var flashPolicy = FlashPolicy()
+    /// 시스템 "동작 줄이기" 설정입니다.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// 방향키 1회 입력당 BPM 증감량입니다. 상하 = 10, 좌우 = 1.
     private static let bpmStepCoarse: Double = 10
@@ -48,8 +52,13 @@ struct MetronomeScreen: View {
         .background(FloatingWindowConfigurator(floating: state.floating))
         .background(beatPoller)
         .onChange(of: state.isPlaying) { _, playing in
-            // 정지 시 활성 강조를 즉시 해제합니다.
-            if !playing { activePulse = nil }
+            // 정지 시 활성 강조와 잔여 플래시를 즉시 해제합니다.
+            if !playing {
+                activePulse = nil
+                flashOpacity = 0
+            }
+            // 재생 전환마다 점멸 간격을 초기화해 첫 박이 바로 보이도록 합니다.
+            flashPolicy.reset()
         }
         // 방향키로 BPM을 조절합니다(상하 ±10, 좌우 ±1).
         // 루트를 focusable로 만들고 등장 시 자동 포커스해, 창이 활성인 한 어디를 클릭했든 방향키가 먹습니다.
@@ -93,10 +102,19 @@ struct MetronomeScreen: View {
                         if snapshot.beatIndex == 0 && snapshot.pulseIndex == 0 {
                             state.registerBarStart()
                         }
-                        // 비주얼 플래시: 매 펄스마다 피크값 세팅 후 빠르게 페이드.
+                        // 비주얼 플래시: 박 단위 + 최소 간격으로 점멸률을 제한합니다.
+                        // (제한 없이 매 펄스 점멸하면 고 BPM·잘게 쪼갠 분할에서
+                        //  초당 수십 회 전체 화면 명멸이 발생합니다.)
                         if state.visualFlash {
-                            flashOpacity = snapshot.isAccent ? 0.32 : 0.16
-                            withAnimation(.easeOut(duration: 0.16)) { flashOpacity = 0 }
+                            let now = Date().timeIntervalSinceReferenceDate
+                            let isBeatStart = snapshot.pulseIndex == 0
+                            if flashPolicy.shouldFlash(at: now, isBeatStart: isBeatStart) {
+                                flashOpacity = FlashPolicy.peakOpacity(
+                                    isAccent: snapshot.isAccent, reduceMotion: reduceMotion
+                                )
+                                let fade = FlashPolicy.fadeDuration(reduceMotion: reduceMotion)
+                                withAnimation(.easeOut(duration: fade)) { flashOpacity = 0 }
+                            }
                         }
                     }
             }
