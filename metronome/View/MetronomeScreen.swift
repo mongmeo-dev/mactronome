@@ -259,7 +259,7 @@ struct MetronomeScreen: View {
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(Theme.Colors.mut)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableButtonStyle())
             .accessibilityLabel("오류 메시지 닫기")
         }
         .padding(.horizontal, 15)
@@ -446,7 +446,7 @@ struct MetronomeScreen: View {
                 }
                 .shadow(color: Theme.Colors.accSoft, radius: 8, x: 0, y: 6)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableButtonStyle())
             .accessibilityLabel(state.isPlaying ? "정지" : "시작")
 
             // TAP 버튼: 올라온 표면 + 액센트 테두리. state.tap() 으로 탭 템포 기록.
@@ -469,7 +469,7 @@ struct MetronomeScreen: View {
                     }
                     .shadow(color: .black.opacity(0.06), radius: 1.5, x: 0, y: 1)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableButtonStyle())
             .accessibilityLabel("탬포 탭")
         }
     }

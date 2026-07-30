@@ -59,7 +59,7 @@ struct SubdivisionGridView: View {
             }
             .shadow(color: .black.opacity(isOn ? 0.09 : 0), radius: 1, x: 0, y: 1)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableButtonStyle())
         .animation(Theme.Motion.chip, value: isOn)
         .accessibilityLabel(option.name)
         .accessibilityAddTraits(isOn ? [.isSelected] : [])

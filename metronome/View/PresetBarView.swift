@@ -52,7 +52,7 @@ struct PresetBarView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Theme.Colors.acc)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableButtonStyle())
             .accessibilityLabel("현재 설정을 프리셋으로 저장")
         }
         .padding(.horizontal, 15)

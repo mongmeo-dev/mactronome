@@ -61,7 +61,7 @@ struct RoundButton: View {
                 .frame(width: size, height: size)
                 .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableButtonStyle())
         .accessibilityLabel(symbol == "−" ? "감소" : (symbol == "+" ? "증가" : symbol))
     }
 }
@@ -89,7 +89,7 @@ struct DenomChip: View {
                 }
                 .shadow(color: .black.opacity(isOn ? 0.09 : 0), radius: 1, x: 0, y: 1)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableButtonStyle())
         .animation(Theme.Motion.chip, value: isOn)
         .accessibilityLabel("분모 \(value)")
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
