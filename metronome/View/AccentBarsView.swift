@@ -95,22 +95,46 @@ struct AccentBarsView: View {
             + groupSpacing * CGFloat(rows - 1)
     }
 
+    /// 화면에 한 번에 보여 주는 최대 줄 수입니다. 이를 넘는 줄은 스크롤로 처리합니다.
+    ///
+    /// 창은 `.windowResizability(.contentSize)` 라 콘텐츠 높이가 곧 창 높이입니다.
+    /// 12박 × 6잇단(4줄)을 전부 펼치면 창이 1,100pt 가 되어 13" 노트북에서
+    /// 하단 트랜스포트가 화면 밖으로 밀려납니다. 줄 수를 제한해 창 높이 상한을 만듭니다.
+    static let maxVisibleRows: Int = 2
+
+    /// 악센트 바 영역이 실제로 차지하는 높이입니다(초과 줄은 스크롤).
+    static func visibleHeight(beatCount: Int, pulses: Int) -> CGFloat {
+        let rows = min(rowCount(beatCount: beatCount, pulses: pulses), maxVisibleRows)
+        guard rows > 0 else { return singleGroupRowHeight }
+        return singleGroupRowHeight * CGFloat(rows)
+            + groupSpacing * CGFloat(rows - 1)
+    }
+
     /// 현재 grid 기준 콘텐츠 높이입니다.
     private var contentHeight: CGFloat {
         Self.contentHeight(beatCount: grid.count, pulses: grid.first?.count ?? 0)
     }
 
+    /// 현재 grid 기준 실제 표시 높이입니다.
+    private var visibleHeight: CGFloat {
+        Self.visibleHeight(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+    }
+
     var body: some View {
         Group {
             if overflowsSingleRow {
-                wrappedRows
+                ScrollView(.vertical) {
+                    wrappedRows
+                }
+                // 상한 안에 다 들어오면 스크롤 제스처를 막아 오작동을 없앱니다.
+                .scrollDisabled(contentHeight <= visibleHeight)
             } else {
                 singleRow
             }
         }
-        // 이상적 높이를 계산값으로 고정해, .contentSize 창이 여러 줄 높이를
-        // 정확히 반영하도록 합니다(줄바꿈 시 잘림/겹침 방지).
-        .frame(height: contentHeight)
+        // 표시 높이를 계산값으로 고정해, .contentSize 창이 정확한 높이를
+        // 갖도록 합니다(줄바꿈 시 잘림/겹침 방지 + 창 높이 상한 확보).
+        .frame(height: visibleHeight)
     }
 
     /// 한 줄 배치(기존 동작). 모든 그룹이 가용 폭 안에 들어갈 때 사용합니다.

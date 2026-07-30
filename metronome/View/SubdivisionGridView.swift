@@ -20,11 +20,18 @@ extension SubdivisionOption {
     ]
 }
 
-/// 분할 선택 3열 그리드(6타일).
+/// 분할 선택 1행 그리드(6타일).
+///
+/// 3열 2행이던 것을 6열 1행으로 바꿨습니다. 옵션이 6개뿐이라 한 줄에
+/// 다 들어가고, 두 줄을 오가며 훑을 필요가 없어집니다.
+/// 본 창 세로 공간도 약 56pt 절약됩니다(창 높이 상한 확보).
 struct SubdivisionGridView: View {
     @Binding var subIdx: Int
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 7), count: 3)
+    private let columns = Array(
+        repeating: GridItem(.flexible(), spacing: 7),
+        count: SubdivisionOption.all.count
+    )
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 7) {
@@ -45,6 +52,9 @@ struct SubdivisionGridView: View {
                 Text(option.name)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(isOn ? Theme.Colors.ink : Theme.Colors.mut2)
+                    // 6열에서도 "16분음표" 가 줄바꿈/축약되지 않도록 한 줄로 고정합니다.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 9)

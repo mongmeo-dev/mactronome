@@ -138,7 +138,18 @@ struct MetronomeScreen: View {
             HStack(spacing: 0) {
                 Color.clear.frame(width: Theme.Layout.trafficLightInset)
                 Spacer()
+                SettingsLink {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.Colors.mut)
+                        .frame(width: 26, height: 22)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PressableButtonStyle())
+                .help("설정 (⌘,)")
+                .accessibilityLabel("설정 열기")
             }
+            .padding(.trailing, 8)
 
             Text("Metronome")
                 .font(.system(size: 13, weight: .medium))
@@ -203,27 +214,15 @@ struct MetronomeScreen: View {
             SubdivisionGridView(subIdx: subIdxBinding)
                 .padding(.bottom, 22)
 
-            // 6. 사운드
-            soundRow
-                .padding(.bottom, 10)
-
-            // 7. 볼륨
+            // 6. 볼륨 (자주 만지는 값이라 본 창에 남깁니다)
             volumeRow
                 .padding(.bottom, 18)
 
-            // 8. 연습(트레이너/카운트인)
-            sectionLabel("연습")
-                .padding(.bottom, 10)
-            TrainerSectionView(state: state)
-                .padding(.bottom, 18)
+            // 사운드 음색 / 연습 도구 / 표시·창 설정은 Settings 씬(⌘,)으로 옮겼습니다.
+            // 상시 노출 시 창 높이가 1,100pt 를 넘어 13" 화면에서 시작 버튼이
+            // 화면 밖으로 밀려났습니다.
 
-            // 9. 표시/창
-            sectionLabel("표시")
-                .padding(.bottom, 10)
-            DisplaySettingsView(state: state)
-                .padding(.bottom, 18)
-
-            // 10. 오디오 실패 배너 + 시작/TAP
+            // 7. 오디오 실패 배너 + 시작/TAP
             if let message = state.lastError {
                 errorBanner(message)
                     .padding(.bottom, 10)
@@ -349,44 +348,6 @@ struct MetronomeScreen: View {
         }
         editingBPM = false
         keyboardFocused = true // 방향키/스페이스 포커스 복귀
-    }
-
-    // MARK: - Sound row
-
-    private var soundRow: some View {
-        HStack {
-            Text("사운드")
-                .font(.system(size: 12.5, weight: .medium))
-                .foregroundStyle(Theme.Colors.mut)
-            Spacer()
-            Menu {
-                ForEach(ClickSound.allCases) { option in
-                    Button {
-                        state.sound = option
-                    } label: {
-                        if state.sound == option {
-                            Label(option.displayName, systemImage: "checkmark")
-                        } else {
-                            Text(option.displayName)
-                        }
-                    }
-                }
-            } label: {
-                Text("\(state.sound.displayName) ⌄")
-                    .font(.monoTabular(size: 12))
-                    .foregroundStyle(Theme.Colors.ink)
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .accessibilityLabel("사운드 선택")
-        }
-        .padding(.horizontal, 15)
-        .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
-                .fill(Theme.Colors.panel)
-        }
     }
 
     // MARK: - Volume row

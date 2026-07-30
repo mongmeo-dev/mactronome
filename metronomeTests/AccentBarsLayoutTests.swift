@@ -116,6 +116,40 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 6), 4)
         XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 6), 396, accuracy: 0.001)
     }
+    // MARK: - visibleHeight (창 높이 상한)
+
+    /// 한 줄이면 표시 높이와 콘텐츠 높이가 같습니다.
+    func test_visibleHeight_matchesContentHeight_whenWithinCap() {
+        for (beats, pulses) in [(4, 1), (2, 6), (4, 4)] {
+            XCTAssertEqual(AccentBarsView.visibleHeight(beatCount: beats, pulses: pulses),
+                           AccentBarsView.contentHeight(beatCount: beats, pulses: pulses),
+                           accuracy: 0.001,
+                           "beats=\(beats) pulses=\(pulses)")
+        }
+    }
+
+    /// 상한을 넘는 줄 수는 표시 높이가 `maxVisibleRows` 에서 멈춰야 합니다(초과분은 스크롤).
+    func test_visibleHeight_isCappedAtMaxVisibleRows() {
+        let capped = AccentBarsView.visibleHeight(beatCount: 12, pulses: 6)
+        let full = AccentBarsView.contentHeight(beatCount: 12, pulses: 6)
+        XCTAssertLessThan(capped, full)
+        XCTAssertEqual(capped, 190, accuracy: 0.001) // 87×2 + 16
+    }
+
+    /// 어떤 박자/분할 조합에서도 표시 높이는 상한을 넘지 않아야 합니다.
+    func test_visibleHeight_neverExceedsCap_forAnyConfiguration() {
+        let cap = AccentBarsView.singleGroupRowHeight * CGFloat(AccentBarsView.maxVisibleRows)
+            + AccentBarsView.groupSpacing * CGFloat(AccentBarsView.maxVisibleRows - 1)
+        for beats in 1...12 {
+            for pulses in MetronomeState.subCounts {
+                XCTAssertLessThanOrEqual(
+                    AccentBarsView.visibleHeight(beatCount: beats, pulses: pulses), cap,
+                    "beats=\(beats) pulses=\(pulses) 에서 상한을 넘었습니다"
+                )
+            }
+        }
+    }
+
 
     // MARK: - rowCount
 

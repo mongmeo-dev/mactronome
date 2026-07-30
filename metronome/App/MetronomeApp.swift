@@ -30,6 +30,11 @@ struct MetronomeApp: App {
             }
         }
 
+        // 사운드 음색 / 연습 도구 / 표시·창 설정은 표준 설정 창(⌘,)으로 분리합니다.
+        Settings {
+            SettingsScreen(state: state)
+        }
+
         // 메뉴바에서 재생/정지·BPM을 빠르게 제어합니다.
         MenuBarExtra {
             MenuBarContent(state: state)
