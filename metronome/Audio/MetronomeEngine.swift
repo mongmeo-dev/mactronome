@@ -206,6 +206,12 @@ final class MetronomeEngine {
         }
     }
 
+    /// 여기서 `engine.stop()` 을 호출하면 안 됩니다.
+    ///
+    /// `prewarm()` 이 AVAudioEngine 을 상시 가동 상태로 만들기 때문에 정리하고
+    /// 싶어지지만, 렌더 콜백이 도는 도중 `deinit` 에서 정지를 기다리면 교착합니다.
+    /// 프로세스 종료 시 하드웨어는 어차피 반환되므로 관찰자만 해제합니다.
+
     deinit {
         if let o = configObserver { NotificationCenter.default.removeObserver(o) }
     }

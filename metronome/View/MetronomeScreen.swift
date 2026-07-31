@@ -204,13 +204,14 @@ struct MetronomeScreen: View {
             bpmReadout
                 .padding(.bottom, 6)
 
-            // 3. 템포 캡션 + 마디/카운트인 인디케이터
+            // 3. 템포 캡션 + 마디/카운트인 + 자동 가속 인디케이터
             VStack(spacing: 4) {
                 Text("\(tempoWord) · BPM")
                     .font(.system(size: 12))
                     .tracking(1.68) // .14em @ 12px
                     .foregroundStyle(Theme.Colors.mut2)
                 barIndicator
+                trainerIndicator
             }
             .frame(maxWidth: .infinity)
             .padding(.bottom, 20)
@@ -271,6 +272,7 @@ struct MetronomeScreen: View {
                         .foregroundStyle(Theme.Colors.ink)
                         .fixedSize()
                     barIndicator
+                    trainerIndicator
                 }
                 .frame(minWidth: 92)
                 .accessibilityElement(children: .combine)
@@ -378,6 +380,39 @@ struct MetronomeScreen: View {
             }
         }
         .frame(height: 14)
+    }
+
+    /// 자동 가속(트레이너) 진행 상황입니다.
+    ///
+    /// 트레이너가 켜져 있으면 BPM 이 저절로 올라가는데, 이전에는 그 사실도
+    /// 목표까지 얼마나 남았는지도 화면에 전혀 드러나지 않았습니다.
+    @ViewBuilder
+    private var trainerIndicator: some View {
+        if state.trainerEnabled {
+            HStack(spacing: 5) {
+                Image(systemName: "chevron.up.circle")
+                    .font(.system(size: 9, weight: .semibold))
+                Text(trainerStatusText)
+                    .font(.monoTabular(size: 10))
+            }
+            .foregroundStyle(state.trainerReachedTarget ? Theme.Colors.mut2 : Theme.Colors.acc)
+            .frame(height: 13)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("자동 가속. \(trainerStatusText)")
+        }
+    }
+
+    /// 트레이너 상태 문구입니다.
+    private var trainerStatusText: String {
+        if state.trainerReachedTarget {
+            return "목표 \(state.trainerTargetBPM) 도달"
+        }
+        let remaining = state.trainerTargetBPM - Int(state.bpm)
+        guard state.isPlaying, let bars = state.barsUntilNextBump else {
+            // 정지 중에는 다음 bump 까지 남은 마디가 의미 없으므로 목표만 알립니다.
+            return "목표 \(state.trainerTargetBPM) (남은 \(remaining))"
+        }
+        return "\(bars)마디 후 +\(state.trainerBPMStep) · 목표 \(state.trainerTargetBPM)"
     }
 
     // MARK: - BPM readout

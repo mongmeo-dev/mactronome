@@ -72,7 +72,8 @@ final class MetronomeState: ObservableObject {
     @Published private(set) var countInRemaining: Int = 0
 
     /// 트레이너 bump 판정을 위해 완료된 마디를 세는 내부 카운터입니다.
-    private var barsSinceBump = 0
+    /// UI 진행 표시가 이 값을 읽으므로 @Published 로 둡니다.
+    @Published private(set) var barsSinceBump = 0
 
     /// 저장된 프리셋 목록입니다.
     @Published private(set) var presets: [Preset] = []
@@ -327,6 +328,17 @@ final class MetronomeState: ObservableObject {
         let target = Double(trainerTargetBPM)
         guard bpm < target else { return }
         setBPM(min(bpm + Double(trainerBPMStep), target))
+    }
+
+    /// 다음 자동 가속까지 남은 마디 수입니다. 트레이너가 꺼져 있으면 nil.
+    var barsUntilNextBump: Int? {
+        guard trainerEnabled else { return nil }
+        return max(0, max(1, trainerEveryBars) - barsSinceBump)
+    }
+
+    /// 트레이너가 목표 BPM에 도달했는지 여부입니다.
+    var trainerReachedTarget: Bool {
+        trainerEnabled && bpm >= Double(trainerTargetBPM)
     }
 
     /// 현재 시각으로 탭 템포를 기록합니다.

@@ -84,6 +84,59 @@ final class TrainerTests: XCTestCase {
         XCTAssertEqual(state.bpm, 200)
     }
 
+    // MARK: - 진행 표시
+
+    /// 트레이너가 꺼져 있으면 진행 표시가 없어야 합니다.
+    func test_barsUntilNextBump_isNilWhenDisabled() {
+        let state = MetronomeState()
+        state.trainerEnabled = false
+        XCTAssertNil(state.barsUntilNextBump)
+        XCTAssertFalse(state.trainerReachedTarget)
+    }
+
+    /// 다음 가속까지 남은 마디가 매 마디 줄어들고, 가속 직후 다시 채워져야 합니다.
+    func test_barsUntilNextBump_countsDownAndResets() {
+        let state = MetronomeState()
+        state.setBPM(120)
+        state.trainerEnabled = true
+        state.trainerEveryBars = 3
+        state.trainerBPMStep = 5
+        state.trainerTargetBPM = 200
+        state.togglePlay()
+
+        XCTAssertEqual(state.barsUntilNextBump, 3)
+        state.registerBarStart() // 마디1 시작 (완료 0)
+        XCTAssertEqual(state.barsUntilNextBump, 3)
+        state.registerBarStart() // 완료 1
+        XCTAssertEqual(state.barsUntilNextBump, 2)
+        state.registerBarStart() // 완료 2
+        XCTAssertEqual(state.barsUntilNextBump, 1)
+        state.registerBarStart() // 완료 3 → bump
+        XCTAssertEqual(state.bpm, 125)
+        XCTAssertEqual(state.barsUntilNextBump, 3, "가속 직후 카운터가 초기화되어야 합니다")
+    }
+
+    /// trainerEveryBars 가 0 이하로 들어와도 음수/0 나눗셈이 나오면 안 됩니다.
+    func test_barsUntilNextBump_isSafeForDegenerateInterval() {
+        let state = MetronomeState()
+        state.trainerEnabled = true
+        state.trainerEveryBars = 0
+        XCTAssertEqual(state.barsUntilNextBump, 1)
+    }
+
+    /// 목표에 도달하면 도달 상태를 알려야 합니다.
+    func test_trainerReachedTarget_flipsAtTarget() {
+        let state = MetronomeState()
+        state.trainerEnabled = true
+        state.trainerTargetBPM = 150
+        state.setBPM(149)
+        XCTAssertFalse(state.trainerReachedTarget)
+        state.setBPM(150)
+        XCTAssertTrue(state.trainerReachedTarget)
+        state.setBPM(160)
+        XCTAssertTrue(state.trainerReachedTarget)
+    }
+
     func test_trainer_disabled_doesNotBump() {
         let state = MetronomeState()
         state.setBPM(120)

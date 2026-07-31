@@ -30,12 +30,13 @@ final class WindowSizeTests: XCTestCase {
         XCTAssertGreaterThan(size.height, 300, "측정이 실패했거나 콘텐츠가 비었습니다")
     }
 
-    /// 최악 설정(12박 × 6잇단 + 오류 배너)에서도 안전 높이 안에 들어와야 합니다.
-    /// 수정 전에는 1,163pt 였습니다.
+    /// 최악 설정(12박 × 6잇단 + 자동 가속 표시 + 오류 배너)에서도
+    /// 안전 높이 안에 들어와야 합니다. 수정 전에는 1,163pt 였습니다.
     func test_worstCaseLayout_fitsOnLaptopScreen() {
         let state = MetronomeState()
         state.setSubdivision(4) // subCounts[4] == 6 (6잇단)
         while state.grid.count < 12 { state.addBeat() }
+        state.trainerEnabled = true // 자동 가속 진행 표시가 한 줄 더 붙습니다
         state.lastError = "오디오 장치를 사용할 수 없습니다"
 
         let size = measure(state)
