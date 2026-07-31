@@ -80,6 +80,41 @@ final class MetronomeStateTests: XCTestCase {
         XCTAssertFalse(state.isValidCell(beat: state.grid.count, pulse: 0))
     }
 
+    // MARK: - 음소거
+
+    /// 음소거를 켜면 0이 되고, 풀면 직전 볼륨으로 정확히 돌아와야 합니다.
+    func test_toggleMute_restoresPreviousVolume() {
+        let state = MetronomeState()
+        state.volume = 0.35
+        XCTAssertFalse(state.isMuted)
+
+        state.toggleMute()
+        XCTAssertTrue(state.isMuted)
+        XCTAssertEqual(state.volume, 0)
+
+        state.toggleMute()
+        XCTAssertFalse(state.isMuted)
+        XCTAssertEqual(state.volume, 0.35, accuracy: 0.0001)
+    }
+
+    /// 볼륨이 이미 0인 상태에서 음소거를 풀면 들리는 값으로 복구해야 합니다.
+    /// (0으로 저장된 채 앱을 다시 켠 경우 무음에서 벗어날 방법이 없어집니다.)
+    func test_unmute_fromZeroStart_restoresAudibleVolume() {
+        let state = MetronomeState()
+        state.volume = 0
+        state.toggleMute()
+        XCTAssertGreaterThan(state.volume, 0)
+    }
+
+    /// 음소거 중 슬라이더로 볼륨을 올리면 음소거가 자연히 풀린 것으로 봐야 합니다.
+    func test_isMuted_followsVolume() {
+        let state = MetronomeState()
+        state.volume = 0
+        XCTAssertTrue(state.isMuted)
+        state.volume = 0.5
+        XCTAssertFalse(state.isMuted)
+    }
+
     func test_addBeat_appendsRowOfWeak_withPulsesPerBeatCount() {
         let state = MetronomeState()
         let beforeCount = state.grid.count

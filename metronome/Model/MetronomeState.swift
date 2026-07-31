@@ -33,6 +33,23 @@ final class MetronomeState: ObservableObject {
     @Published var volume: Double = 0.8 {
         didSet { engine.setVolume(Float(volume)); persist() }
     }
+    /// 음소거 직전 볼륨입니다. 음소거를 풀 때 원래 크기로 되돌립니다.
+    private var volumeBeforeMute: Double = 0.8
+
+    /// 현재 음소거 상태인지 여부입니다.
+    var isMuted: Bool { volume == 0 }
+
+    /// 음소거를 토글합니다. 슬라이더를 0까지 끌었다 되돌리는 수고를 없앱니다.
+    func toggleMute() {
+        if volume > 0 {
+            volumeBeforeMute = volume
+            volume = 0
+        } else {
+            // 0인 상태로 앱을 껐다 켠 경우를 대비해 하한을 둡니다.
+            volume = volumeBeforeMute > 0 ? volumeBeforeMute : 0.8
+        }
+    }
+
     /// 재생 상태
     @Published private(set) var isPlaying: Bool = false
     /// 마지막 오디오 시작 실패 메시지입니다(성공 시 nil).

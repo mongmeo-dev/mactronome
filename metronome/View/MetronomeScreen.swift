@@ -476,13 +476,26 @@ struct MetronomeScreen: View {
 
     private var volumeRow: some View {
         HStack(spacing: 12) {
-            Image(systemName: state.volume == 0 ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.Colors.mut)
-                .frame(width: 18, alignment: .leading)
+            // 스피커 아이콘은 장식이 아니라 음소거 토글입니다.
+            // (이전에는 볼륨을 0까지 끌었다 되돌리는 방법밖에 없었습니다.)
+            Button {
+                state.toggleMute()
+            } label: {
+                Image(systemName: state.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(state.isMuted ? Theme.Colors.acc : Theme.Colors.mut)
+                    .frame(width: 18, height: 18, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableButtonStyle())
+            .accessibilityLabel(state.isMuted ? "음소거 해제" : "음소거")
+            .help(state.isMuted ? "음소거 해제" : "음소거")
             Slider(value: $state.volume, in: 0...1)
                 .controlSize(.small)
                 .tint(Theme.Colors.acc)
+                .accessibilityLabel("볼륨")
+                .accessibilityValue("\(Int(state.volume * 100))퍼센트")
+                .help("볼륨")
             Text("\(Int(state.volume * 100))")
                 .font(.monoTabular(size: 11))
                 .foregroundStyle(Theme.Colors.mut)
@@ -494,10 +507,7 @@ struct MetronomeScreen: View {
             RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(Theme.Colors.panel)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("볼륨")
-        .accessibilityValue("\(Int(state.volume * 100))퍼센트")
-        .help("볼륨")
+        .accessibilityElement(children: .contain)
     }
 
     // MARK: - Transport row (시작 / TAP)
