@@ -61,6 +61,8 @@ struct MetronomeScreen: View {
         .preferredColorScheme(state.appearance.colorScheme)
         .background(FloatingWindowConfigurator(floating: state.floating))
         .background(beatPoller)
+        // 키보드 입력은 보이지 않는 전용 수신부가 받습니다.
+        .background(keyboardCatcher)
         .onChange(of: state.isPlaying) { _, playing in
             // 정지 시 활성 강조와 잔여 플래시를 즉시 해제합니다.
             if !playing {
@@ -70,21 +72,32 @@ struct MetronomeScreen: View {
             // 재생 전환마다 점멸 간격을 초기화해 첫 박이 바로 보이도록 합니다.
             flashPolicy.reset()
         }
-        // 방향키로 BPM을 조절합니다(상하 ±10, 좌우 ±1).
-        // 루트를 focusable로 만들고 등장 시 자동 포커스해, 창이 활성인 한 어디를 클릭했든 방향키가 먹습니다.
-        .focusable()
-        .focusEffectDisabled()
-        .focused($keyboardFocused)
-        .onAppear { keyboardFocused = true }
-        .onKeyPress(.upArrow) { adjustBPM(by: Self.bpmStepCoarse) }
-        .onKeyPress(.downArrow) { adjustBPM(by: -Self.bpmStepCoarse) }
-        .onKeyPress(.rightArrow) { adjustBPM(by: Self.bpmStepFine) }
-        .onKeyPress(.leftArrow) { adjustBPM(by: -Self.bpmStepFine) }
-        // 스페이스바로 재생/정지를 토글합니다.
-        .onKeyPress(.space) {
-            state.togglePlay()
-            return .handled
-        }
+    }
+
+    /// 창 전체의 키보드 입력을 받는 보이지 않는 수신부입니다.
+    ///
+    /// 예전에는 루트 뷰 자체에 `.focusable().focusEffectDisabled()` 를 걸었는데,
+    /// `focusEffectDisabled` 는 하위 뷰까지 전파되는 환경 수정자라
+    /// 창 안의 모든 버튼·칩·타일에서 포커스 링이 사라졌습니다.
+    /// 키보드 사용자는 지금 어디에 포커스가 있는지 알 수 없었습니다.
+    /// 수신부를 배경의 별도 뷰로 떼어 내 포커스 링 억제 범위를 여기로 한정합니다.
+    private var keyboardCatcher: some View {
+        Color.clear
+            .focusable()
+            .focusEffectDisabled()
+            .focused($keyboardFocused)
+            .onAppear { keyboardFocused = true }
+            // 방향키로 BPM을 조절합니다(상하 ±10, 좌우 ±1).
+            .onKeyPress(.upArrow) { adjustBPM(by: Self.bpmStepCoarse) }
+            .onKeyPress(.downArrow) { adjustBPM(by: -Self.bpmStepCoarse) }
+            .onKeyPress(.rightArrow) { adjustBPM(by: Self.bpmStepFine) }
+            .onKeyPress(.leftArrow) { adjustBPM(by: -Self.bpmStepFine) }
+            // 스페이스바로 재생/정지를 토글합니다.
+            .onKeyPress(.space) {
+                state.togglePlay()
+                return .handled
+            }
+            .accessibilityHidden(true)
     }
 
     /// BPM을 delta만큼 조절합니다. 클램프는 state.setBPM이 담당합니다.
