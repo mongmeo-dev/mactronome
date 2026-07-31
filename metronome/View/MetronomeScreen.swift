@@ -26,10 +26,16 @@ struct MetronomeScreen: View {
     @State private var flashPolicy = FlashPolicy()
     /// 시스템 "동작 줄이기" 설정입니다.
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// BPM 드래그 시작 시점의 값입니다. 드래그 중이 아니면 nil.
+    @State private var bpmDragStart: Double?
+    /// 스크롤 휠 델타를 1 BPM 단위 스텝으로 바꾸는 누적기입니다.
+    @State private var bpmScrollAccumulator = StepAccumulator(pointsPerStep: 4)
 
     /// 방향키 1회 입력당 BPM 증감량입니다. 상하 = 10, 좌우 = 1.
     private static let bpmStepCoarse: Double = 10
     private static let bpmStepFine: Double = 1
+    /// BPM 드래그 민감도: 이 포인트만큼 끌 때 1 BPM 변합니다.
+    private static let bpmDragPointsPerStep: Double = 3
 
     private var beatCount: Int { state.grid.count }
 
@@ -444,7 +450,12 @@ struct MetronomeScreen: View {
                     .fixedSize()
                     .contentShape(Rectangle())
                     .onTapGesture { beginEditingBPM() }
-                    .help("클릭해 직접 입력 · ↑↓ ±10 · ←→ ±1")
+                    // 위아래로 끌어 빠르게 이동합니다. ±1 버튼만으로는
+                    // 132 → 180 에 48번 클릭이 필요했습니다.
+                    .gesture(bpmDragGesture)
+                    // 포인터를 올린 채 스크롤해도 조절됩니다(macOS 수치 필드 관행).
+                    .scrollWheelAdjust(adjustBPMByScroll)
+                    .help("드래그·스크롤로 조절 · 클릭해 직접 입력 · ↑↓ ±10 · ←→ ±1")
                     .accessibilityLabel("BPM \(Int(state.bpm)), 탭하여 직접 입력")
             }
             RoundButton(symbol: "+", size: 34, fontSize: 20,
@@ -453,6 +464,28 @@ struct MetronomeScreen: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// 큰 BPM 숫자를 위아래로 끌어 조절하는 제스처입니다.
+    /// 위로 끌면 증가하며, 3pt 당 1 BPM 입니다.
+    private var bpmDragGesture: some Gesture {
+        DragGesture(minimumDistance: 3)
+            .onChanged { value in
+                // 드래그 시작 시점의 BPM 을 기준으로 누적 이동량을 적용합니다.
+                // 매 프레임 상대 증분을 더하면 반올림 오차가 쌓입니다.
+                let base = bpmDragStart ?? state.bpm
+                if bpmDragStart == nil { bpmDragStart = base }
+                state.setBPM((base - Double(value.translation.height) / Self.bpmDragPointsPerStep).rounded())
+            }
+            .onEnded { _ in bpmDragStart = nil }
+    }
+
+    /// 스크롤 델타를 누적해 1 BPM 단위로 반영합니다.
+    /// 잔여 델타는 누적기가 들고 있으므로 천천히 굴려도 반응이 사라지지 않습니다.
+    private func adjustBPMByScroll(_ delta: Double) {
+        let steps = bpmScrollAccumulator.consume(delta)
+        guard steps != 0 else { return }
+        state.setBPM(state.bpm + steps)
     }
 
     /// 큰 BPM 숫자를 탭하면 직접 입력 모드로 전환합니다.

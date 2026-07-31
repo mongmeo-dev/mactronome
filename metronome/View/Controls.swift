@@ -1,5 +1,6 @@
 // metronome/View/Controls.swift
 import SwiftUI
+import AppKit
 
 /// 눌림 상태를 시각적으로 알려주는 공용 버튼 스타일입니다.
 ///
@@ -67,8 +68,48 @@ struct RoundButton: View {
                 .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
         }
         .buttonStyle(PressableButtonStyle())
+        // 길게 누르고 있으면 반복 실행합니다. BPM 132 → 180 을 48번 클릭하던 것을
+        // 누르고 있는 것으로 대체합니다.
+        .buttonRepeatBehavior(.enabled)
         .accessibilityLabel(label)
         .help(hint ?? label)
+    }
+}
+
+/// 포인터가 뷰 위에 있을 때 스크롤 휠 입력을 값 변화로 전달합니다.
+///
+/// macOS SwiftUI 에는 스크롤 휠을 받는 수정자가 없고, NSView 를 겹쳐 놓으면
+/// 클릭 히트 테스트까지 가로챕니다. 그래서 호버 여부만 추적하고
+/// 실제 처리는 로컬 이벤트 모니터로 합니다(다른 입력 경로는 그대로 둡니다).
+struct ScrollWheelAdjust: ViewModifier {
+    /// 스크롤 델타(위로 굴리면 양수)를 전달받는 클로저입니다.
+    let onScroll: (Double) -> Void
+
+    @State private var hovering = false
+    @State private var monitor: Any?
+
+    func body(content: Content) -> some View {
+        content
+            .onHover { hovering = $0 }
+            .onAppear {
+                guard monitor == nil else { return }
+                monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                    guard hovering else { return event }
+                    onScroll(Double(event.scrollingDeltaY))
+                    return nil // 소비했으므로 하위로 흘리지 않습니다.
+                }
+            }
+            .onDisappear {
+                if let monitor { NSEvent.removeMonitor(monitor) }
+                monitor = nil
+            }
+    }
+}
+
+extension View {
+    /// 포인터가 올라가 있을 때 스크롤 휠로 값을 조절할 수 있게 합니다.
+    func scrollWheelAdjust(_ onScroll: @escaping (Double) -> Void) -> some View {
+        modifier(ScrollWheelAdjust(onScroll: onScroll))
     }
 }
 
