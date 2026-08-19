@@ -123,7 +123,7 @@ jobs:
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            "OTHER_CODE_SIGN_FLAGS=--keychain $KEYCHAIN_PATH"
+            "OTHER_CODE_SIGN_FLAGS=--keychain $KEYCHAIN_PATH --timestamp"
 
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
