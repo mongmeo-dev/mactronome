@@ -111,7 +111,16 @@ jobs:
             -k "$KEYCHAIN_PASSWORD" \
             "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH"
-          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          IDENTITIES="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH")"
+          echo "$IDENTITIES"
+          CODE_SIGN_IDENTITY="$(
+            IDENTITIES="$IDENTITIES" python3 -c \
+              'import os, re; match = re.search(r\"\\\"(Developer ID Application:[^\\\"]+)\\\"\", os.environ[\"IDENTITIES\"]); print(match.group(1) if match else \"\")'
+          )"
+          if [[ -z "$CODE_SIGN_IDENTITY" ]]; then
+            echo "Developer ID Application 인증서를 찾지 못했습니다." >&2
+            exit 1
+          fi
 
           xcodebuild archive \
             -project mactronome.xcodeproj \
@@ -124,6 +133,28 @@ jobs:
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             "OTHER_CODE_SIGN_FLAGS=--keychain $KEYCHAIN_PATH --timestamp"
+
+          SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Installer.xpc"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            --preserve-metadata=entitlements \
+            "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            "$SPARKLE_FRAMEWORK"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            --preserve-metadata=identifier,entitlements,requirements \
+            "$APP_PATH"
 
           codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 
