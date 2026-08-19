@@ -1,0 +1,814 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		073F53F04EA82606222DB955 /* AccentBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2C31160A986C0B349F268A /* AccentBarsView.swift */; };
+		08D7E4A14D006EE5AF7EE36C /* AccentLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1100AC78AF8B629042C55D /* AccentLevel.swift */; };
+		098B98BE1BE628CE87F4F31F /* TrainerSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB63F4C3B4E730EC02104CB /* TrainerSectionView.swift */; };
+		152F5661E8CC357B7B10C49A /* PulseSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4030608C730B48080377B1C9 /* PulseSchedulerTests.swift */; };
+		16167BB363595E615DF91E4F /* TimeSignatureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35ECD9C0FD143CAC1FD75CEC /* TimeSignatureEditorView.swift */; };
+		19465E4A40F892BA77841998 /* AccentLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D1B400E54E5F8189C990D8 /* AccentLevelTests.swift */; };
+		24A7F9E74EEEB293A749132F /* TapTempo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E958AA36D4DE62AFE9B8AA13 /* TapTempo.swift */; };
+		27335FE0A6AE6E41D59B0A2C /* TapTempoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A369C02D1978419A1428F5 /* TapTempoTests.swift */; };
+		29B31AE4769C2F67B56241AB /* ClickSynthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B9CA389EA82591D977B7BD /* ClickSynthTests.swift */; };
+		29E193C951496B874A3890F1 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = D4CDB88CED4417817F0EC4BA /* Atomics */; };
+		34885EEF441E1E45A193DBC5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC12212F1655267AB2A1F2BA /* Assets.xcassets */; };
+		356E907A9B160893C2A9E6A3 /* WindowSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2909EF29153B5AF67E4BED9 /* WindowSizeTests.swift */; };
+		3F29E2875B8F2432CF50C979 /* ClickSynth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 597B43B3130339143FDF2FCC /* ClickSynth.swift */; };
+		41F620C320D3F1DC708D714B /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5494E58A5306A148BF3990 /* SmokeTests.swift */; };
+		467890766D6A566505E3E7E3 /* Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1275FF1C637B0272985CF416 /* Controls.swift */; };
+		48819EBF0123ADEE64DB1E31 /* SubdivisionGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395F444724F03F3AA9EDF0C7 /* SubdivisionGridView.swift */; };
+		48ABE607A0D6E0CB8C386480 /* MetronomeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC40FCEB103A7D8A631BC8F /* MetronomeState.swift */; };
+		4A60BAF0154F4AC9DA537F35 /* FloatingWindowConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8156CB5FBCA710A980C24BF3 /* FloatingWindowConfigurator.swift */; };
+		52AB8D4BB686923793F9697A /* BeatEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1517F9D9CFA688CCD70380E /* BeatEventTests.swift */; };
+		5B2DDA5941CBCF2DFAC5BC26 /* BeatMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315A53390757A616F86C2087 /* BeatMath.swift */; };
+		5ED7A7B481A344932B636136 /* PresetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 099B5BDF83E2FB8E36856477 /* PresetTests.swift */; };
+		5F86C9B1603BA6D0A362B155 /* TrainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAB9D6BD5F3E4BFAF3AE7AA /* TrainerTests.swift */; };
+		6CAD10C33E17542F55D8BBE3 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CF0533AEB05B3FCF1D3C80 /* Preset.swift */; };
+		6D258B88536D4FF8763F5E24 /* PolyVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62748D34901118A9F247BF6F /* PolyVoice.swift */; };
+		6F9ED195946705AE6F4D1389 /* ThemeContrastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1345CDD2ADEB5046380EADB /* ThemeContrastTests.swift */; };
+		71B2213211A5B27196F517F1 /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 1361A992C6F6D16EEAEE7D90 /* Atomics */; };
+		77B9410AEF8118522EA2BADC /* FlashPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105262660A8B03237E438E06 /* FlashPolicy.swift */; };
+		785A526FB9B4B2F397C4A040 /* MetronomeStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17189D608BAA2B2443B8B37 /* MetronomeStateTests.swift */; };
+		78D72D423AF9F213DDA3BF51 /* BeatMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 591CC6BE922F8D728AB189FC /* BeatMathTests.swift */; };
+		849336C5CD44D264DDB006F5 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = B600BD9674CAC53BB4996EB1 /* AppAppearance.swift */; };
+		86DEBF73D754D48D47EBF981 /* AccentLevel+View.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5DD661382C07CE7EB4B8750 /* AccentLevel+View.swift */; };
+		8703F3150A78F489FE7529BE /* MactronomeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B40DE20624DE7699FD22457 /* MactronomeApp.swift */; };
+		87BCB4889C0C52D5531B9E8E /* ClickSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6651367338E29C21AC2385C /* ClickSound.swift */; };
+		8D96CC771DEEFD44F497F504 /* MetronomeSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A122B8DFE76A1DAEF953A /* MetronomeSettings.swift */; };
+		96A06E7B7ECD36A2FD420843 /* MetronomeEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFED4F7D31DF32FC6706525D /* MetronomeEngineTests.swift */; };
+		99467EB28159BE1A24559410 /* PulseScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9C706A6136F4CDC5500A0C /* PulseScheduler.swift */; };
+		9EE70F70AE02CA4BD20133F8 /* DisplaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7A29F55709FEAA234A4EE1 /* DisplaySettingsView.swift */; };
+		A779A656B428B1CB66BA161B /* LevelBuffersChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6152333D89F07EB29D133ACC /* LevelBuffersChannel.swift */; };
+		AA45D074DAF08B66FFE3438F /* PresetBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E4272F103D46857CB20B1D /* PresetBarView.swift */; };
+		AA789E5A1C1032F0B69772B8 /* TimeSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C2E72E39A10C3B37B4ADD15 /* TimeSignature.swift */; };
+		AD8274B3079AAFF2E80703F9 /* MetronomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE9314A09F2B77000B5AB8D /* MetronomeScreen.swift */; };
+		B5303F3328C1685EFABF23DE /* BeatEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54AB12EDC5832F0ACD55710 /* BeatEvent.swift */; };
+		B5E3F1788E95FE88EAF4BF5A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96BA0DA2D1CC1C2C2AB49F89 /* ContentView.swift */; };
+		B61F613E079D1C5F56A376EF /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA25FCFB8D3D585009C01A6E /* SettingsScreen.swift */; };
+		C56A9D383C912D7208DACE32 /* PulseGridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38C471487D00C58280E19449 /* PulseGridTests.swift */; };
+		C6C20A50BB24D3DDFAB69F22 /* StepAccumulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B01E26C43B7C89D09D3B04 /* StepAccumulator.swift */; };
+		D044C447F8C56AD4946CE56A /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22599D34B6E8083993D053A6 /* PersistenceTests.swift */; };
+		D3433D7B3B71DEAB8F7CFB38 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D7083B3AEA5144E9570B5BC7 /* Sparkle */; };
+		D7AEDD471903DED458CCCBAE /* TimeSignatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1D631D6811B7F1F32B7EE8 /* TimeSignatureTests.swift */; };
+		DC77D7B3C6F3313D825DC7B7 /* StepAccumulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076D8B338BC8080D5F9CB5F2 /* StepAccumulatorTests.swift */; };
+		E4FFA5A9048659ED6491BB24 /* MetronomeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155081173BD8D0BEB6AF2C9E /* MetronomeEngine.swift */; };
+		E5A435A76E94E20B35DFF021 /* FlashPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FB4BD76F768C0246597F00 /* FlashPolicyTests.swift */; };
+		F6905990A4B40E1C4731A88C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365785388D60A5DA2D61467B /* Theme.swift */; };
+		FA254596ECD786D13EE1552A /* PulseGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECFD55F3AD580B967C66C5D2 /* PulseGrid.swift */; };
+		FC3F9961C0C53359276A31D3 /* PolyVoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 755EA6561161A2B9BEA63F49 /* PolyVoiceTests.swift */; };
+		FF530FB91EDE84C82A3FB26F /* AccentBarsLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E1D4E8AD7EF96F016850B4 /* AccentBarsLayoutTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		42EF8B764ED1478A014B2E9D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EAED4EAF7ED165976691F8F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1DD3298AAA99D49F5E0DD359;
+			remoteInfo = mactronome;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01B9CA389EA82591D977B7BD /* ClickSynthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickSynthTests.swift; sourceTree = "<group>"; };
+		076D8B338BC8080D5F9CB5F2 /* StepAccumulatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepAccumulatorTests.swift; sourceTree = "<group>"; };
+		099B5BDF83E2FB8E36856477 /* PresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetTests.swift; sourceTree = "<group>"; };
+		0DC40FCEB103A7D8A631BC8F /* MetronomeState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeState.swift; sourceTree = "<group>"; };
+		0DE9314A09F2B77000B5AB8D /* MetronomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeScreen.swift; sourceTree = "<group>"; };
+		105262660A8B03237E438E06 /* FlashPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashPolicy.swift; sourceTree = "<group>"; };
+		1275FF1C637B0272985CF416 /* Controls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Controls.swift; sourceTree = "<group>"; };
+		155081173BD8D0BEB6AF2C9E /* MetronomeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeEngine.swift; sourceTree = "<group>"; };
+		1F76653E6475E7920DD94B5B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		22599D34B6E8083993D053A6 /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
+		2D2C31160A986C0B349F268A /* AccentBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentBarsView.swift; sourceTree = "<group>"; };
+		315A53390757A616F86C2087 /* BeatMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatMath.swift; sourceTree = "<group>"; };
+		32A369C02D1978419A1428F5 /* TapTempoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapTempoTests.swift; sourceTree = "<group>"; };
+		35ECD9C0FD143CAC1FD75CEC /* TimeSignatureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeSignatureEditorView.swift; sourceTree = "<group>"; };
+		365785388D60A5DA2D61467B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		38C471487D00C58280E19449 /* PulseGridTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseGridTests.swift; sourceTree = "<group>"; };
+		395F444724F03F3AA9EDF0C7 /* SubdivisionGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubdivisionGridView.swift; sourceTree = "<group>"; };
+		3B40DE20624DE7699FD22457 /* MactronomeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MactronomeApp.swift; sourceTree = "<group>"; };
+		3C2E72E39A10C3B37B4ADD15 /* TimeSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeSignature.swift; sourceTree = "<group>"; };
+		3E5494E58A5306A148BF3990 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		3F1100AC78AF8B629042C55D /* AccentLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentLevel.swift; sourceTree = "<group>"; };
+		4030608C730B48080377B1C9 /* PulseSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseSchedulerTests.swift; sourceTree = "<group>"; };
+		4D1D631D6811B7F1F32B7EE8 /* TimeSignatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeSignatureTests.swift; sourceTree = "<group>"; };
+		591CC6BE922F8D728AB189FC /* BeatMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatMathTests.swift; sourceTree = "<group>"; };
+		597B43B3130339143FDF2FCC /* ClickSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickSynth.swift; sourceTree = "<group>"; };
+		5A6C7FF935D766A6FA34A84F /* mactronome.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mactronome.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B7A29F55709FEAA234A4EE1 /* DisplaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettingsView.swift; sourceTree = "<group>"; };
+		6152333D89F07EB29D133ACC /* LevelBuffersChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelBuffersChannel.swift; sourceTree = "<group>"; };
+		62748D34901118A9F247BF6F /* PolyVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyVoice.swift; sourceTree = "<group>"; };
+		66CF0533AEB05B3FCF1D3C80 /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
+		755EA6561161A2B9BEA63F49 /* PolyVoiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyVoiceTests.swift; sourceTree = "<group>"; };
+		7F9C706A6136F4CDC5500A0C /* PulseScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseScheduler.swift; sourceTree = "<group>"; };
+		8156CB5FBCA710A980C24BF3 /* FloatingWindowConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWindowConfigurator.swift; sourceTree = "<group>"; };
+		84FB4BD76F768C0246597F00 /* FlashPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashPolicyTests.swift; sourceTree = "<group>"; };
+		89D1B400E54E5F8189C990D8 /* AccentLevelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentLevelTests.swift; sourceTree = "<group>"; };
+		91E23A98E5C2F8952C78318C /* mactronome.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = mactronome.entitlements; sourceTree = "<group>"; };
+		96BA0DA2D1CC1C2C2AB49F89 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		98B01E26C43B7C89D09D3B04 /* StepAccumulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepAccumulator.swift; sourceTree = "<group>"; };
+		9BAB9D6BD5F3E4BFAF3AE7AA /* TrainerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerTests.swift; sourceTree = "<group>"; };
+		B1345CDD2ADEB5046380EADB /* ThemeContrastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeContrastTests.swift; sourceTree = "<group>"; };
+		B3E4272F103D46857CB20B1D /* PresetBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetBarView.swift; sourceTree = "<group>"; };
+		B5C30AAFEF125F07FBC5F6B0 /* mactronomeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mactronomeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B600BD9674CAC53BB4996EB1 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		C8E1D4E8AD7EF96F016850B4 /* AccentBarsLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentBarsLayoutTests.swift; sourceTree = "<group>"; };
+		D54AB12EDC5832F0ACD55710 /* BeatEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatEvent.swift; sourceTree = "<group>"; };
+		DA25FCFB8D3D585009C01A6E /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		DDB63F4C3B4E730EC02104CB /* TrainerSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainerSectionView.swift; sourceTree = "<group>"; };
+		E2909EF29153B5AF67E4BED9 /* WindowSizeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSizeTests.swift; sourceTree = "<group>"; };
+		E5DD661382C07CE7EB4B8750 /* AccentLevel+View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AccentLevel+View.swift"; sourceTree = "<group>"; };
+		E6651367338E29C21AC2385C /* ClickSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickSound.swift; sourceTree = "<group>"; };
+		E958AA36D4DE62AFE9B8AA13 /* TapTempo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapTempo.swift; sourceTree = "<group>"; };
+		ECFD55F3AD580B967C66C5D2 /* PulseGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseGrid.swift; sourceTree = "<group>"; };
+		F1517F9D9CFA688CCD70380E /* BeatEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatEventTests.swift; sourceTree = "<group>"; };
+		F17189D608BAA2B2443B8B37 /* MetronomeStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeStateTests.swift; sourceTree = "<group>"; };
+		F34A122B8DFE76A1DAEF953A /* MetronomeSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeSettings.swift; sourceTree = "<group>"; };
+		FC12212F1655267AB2A1F2BA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FFED4F7D31DF32FC6706525D /* MetronomeEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeEngineTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		77628831DC646481C9355E80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29E193C951496B874A3890F1 /* Atomics in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		832D88885E18F52B8068C91C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71B2213211A5B27196F517F1 /* Atomics in Frameworks */,
+				D3433D7B3B71DEAB8F7CFB38 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1136F353051BEA4CFFEC51D0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5A6C7FF935D766A6FA34A84F /* mactronome.app */,
+				B5C30AAFEF125F07FBC5F6B0 /* mactronomeTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		378F273F579CC54B2A17DA93 /* mactronomeTests */ = {
+			isa = PBXGroup;
+			children = (
+				C8E1D4E8AD7EF96F016850B4 /* AccentBarsLayoutTests.swift */,
+				89D1B400E54E5F8189C990D8 /* AccentLevelTests.swift */,
+				F1517F9D9CFA688CCD70380E /* BeatEventTests.swift */,
+				591CC6BE922F8D728AB189FC /* BeatMathTests.swift */,
+				01B9CA389EA82591D977B7BD /* ClickSynthTests.swift */,
+				84FB4BD76F768C0246597F00 /* FlashPolicyTests.swift */,
+				FFED4F7D31DF32FC6706525D /* MetronomeEngineTests.swift */,
+				F17189D608BAA2B2443B8B37 /* MetronomeStateTests.swift */,
+				22599D34B6E8083993D053A6 /* PersistenceTests.swift */,
+				755EA6561161A2B9BEA63F49 /* PolyVoiceTests.swift */,
+				099B5BDF83E2FB8E36856477 /* PresetTests.swift */,
+				38C471487D00C58280E19449 /* PulseGridTests.swift */,
+				4030608C730B48080377B1C9 /* PulseSchedulerTests.swift */,
+				3E5494E58A5306A148BF3990 /* SmokeTests.swift */,
+				076D8B338BC8080D5F9CB5F2 /* StepAccumulatorTests.swift */,
+				32A369C02D1978419A1428F5 /* TapTempoTests.swift */,
+				B1345CDD2ADEB5046380EADB /* ThemeContrastTests.swift */,
+				4D1D631D6811B7F1F32B7EE8 /* TimeSignatureTests.swift */,
+				9BAB9D6BD5F3E4BFAF3AE7AA /* TrainerTests.swift */,
+				E2909EF29153B5AF67E4BED9 /* WindowSizeTests.swift */,
+			);
+			path = mactronomeTests;
+			sourceTree = "<group>";
+		};
+		415A4E641520E512908ABEFD /* mactronome */ = {
+			isa = PBXGroup;
+			children = (
+				FC12212F1655267AB2A1F2BA /* Assets.xcassets */,
+				1F76653E6475E7920DD94B5B /* Info.plist */,
+				91E23A98E5C2F8952C78318C /* mactronome.entitlements */,
+				46A7FE9123CA26E6CA00793C /* App */,
+				75BA14F117D9222B4C80E4B7 /* Audio */,
+				C133AAA67CCFC98C5E6BBFE1 /* Model */,
+				59EEB72662FFB4E8047CAFB1 /* View */,
+			);
+			path = mactronome;
+			sourceTree = "<group>";
+		};
+		46A7FE9123CA26E6CA00793C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				96BA0DA2D1CC1C2C2AB49F89 /* ContentView.swift */,
+				3B40DE20624DE7699FD22457 /* MactronomeApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		59EEB72662FFB4E8047CAFB1 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				2D2C31160A986C0B349F268A /* AccentBarsView.swift */,
+				E5DD661382C07CE7EB4B8750 /* AccentLevel+View.swift */,
+				1275FF1C637B0272985CF416 /* Controls.swift */,
+				5B7A29F55709FEAA234A4EE1 /* DisplaySettingsView.swift */,
+				8156CB5FBCA710A980C24BF3 /* FloatingWindowConfigurator.swift */,
+				0DE9314A09F2B77000B5AB8D /* MetronomeScreen.swift */,
+				B3E4272F103D46857CB20B1D /* PresetBarView.swift */,
+				DA25FCFB8D3D585009C01A6E /* SettingsScreen.swift */,
+				395F444724F03F3AA9EDF0C7 /* SubdivisionGridView.swift */,
+				365785388D60A5DA2D61467B /* Theme.swift */,
+				35ECD9C0FD143CAC1FD75CEC /* TimeSignatureEditorView.swift */,
+				DDB63F4C3B4E730EC02104CB /* TrainerSectionView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		75BA14F117D9222B4C80E4B7 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				D54AB12EDC5832F0ACD55710 /* BeatEvent.swift */,
+				315A53390757A616F86C2087 /* BeatMath.swift */,
+				597B43B3130339143FDF2FCC /* ClickSynth.swift */,
+				6152333D89F07EB29D133ACC /* LevelBuffersChannel.swift */,
+				155081173BD8D0BEB6AF2C9E /* MetronomeEngine.swift */,
+				62748D34901118A9F247BF6F /* PolyVoice.swift */,
+				ECFD55F3AD580B967C66C5D2 /* PulseGrid.swift */,
+				7F9C706A6136F4CDC5500A0C /* PulseScheduler.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		C133AAA67CCFC98C5E6BBFE1 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				3F1100AC78AF8B629042C55D /* AccentLevel.swift */,
+				B600BD9674CAC53BB4996EB1 /* AppAppearance.swift */,
+				E6651367338E29C21AC2385C /* ClickSound.swift */,
+				105262660A8B03237E438E06 /* FlashPolicy.swift */,
+				F34A122B8DFE76A1DAEF953A /* MetronomeSettings.swift */,
+				0DC40FCEB103A7D8A631BC8F /* MetronomeState.swift */,
+				66CF0533AEB05B3FCF1D3C80 /* Preset.swift */,
+				98B01E26C43B7C89D09D3B04 /* StepAccumulator.swift */,
+				E958AA36D4DE62AFE9B8AA13 /* TapTempo.swift */,
+				3C2E72E39A10C3B37B4ADD15 /* TimeSignature.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		D9F48F28F0960C5DAA305C31 = {
+			isa = PBXGroup;
+			children = (
+				415A4E641520E512908ABEFD /* mactronome */,
+				378F273F579CC54B2A17DA93 /* mactronomeTests */,
+				1136F353051BEA4CFFEC51D0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1DD3298AAA99D49F5E0DD359 /* mactronome */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E34B19E1DD68856608A24E40 /* Build configuration list for PBXNativeTarget "mactronome" */;
+			buildPhases = (
+				7E771FBFD9D6ECFAF38FF1D2 /* Sources */,
+				4608656CAF2BFE78C2BAE821 /* Resources */,
+				832D88885E18F52B8068C91C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = mactronome;
+			packageProductDependencies = (
+				1361A992C6F6D16EEAEE7D90 /* Atomics */,
+				D7083B3AEA5144E9570B5BC7 /* Sparkle */,
+			);
+			productName = mactronome;
+			productReference = 5A6C7FF935D766A6FA34A84F /* mactronome.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9F3D6A95B190A93540B33D26 /* mactronomeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0290E92A67B1AAD1D79AB43F /* Build configuration list for PBXNativeTarget "mactronomeTests" */;
+			buildPhases = (
+				4FFA805285BE76032F06F367 /* Sources */,
+				77628831DC646481C9355E80 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				242002234F2754EE3EBF63E5 /* PBXTargetDependency */,
+			);
+			name = mactronomeTests;
+			packageProductDependencies = (
+				D4CDB88CED4417817F0EC4BA /* Atomics */,
+			);
+			productName = mactronomeTests;
+			productReference = B5C30AAFEF125F07FBC5F6B0 /* mactronomeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3EAED4EAF7ED165976691F8F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 6DE8BCAFD072D3F9EF04D415 /* Build configuration list for PBXProject "mactronome" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D9F48F28F0960C5DAA305C31;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8C933AD81F30CC7A97A35D82 /* XCRemoteSwiftPackageReference "swift-atomics" */,
+				E938F5EAE24D955377C94580 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1136F353051BEA4CFFEC51D0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1DD3298AAA99D49F5E0DD359 /* mactronome */,
+				9F3D6A95B190A93540B33D26 /* mactronomeTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4608656CAF2BFE78C2BAE821 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34885EEF441E1E45A193DBC5 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4FFA805285BE76032F06F367 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FF530FB91EDE84C82A3FB26F /* AccentBarsLayoutTests.swift in Sources */,
+				19465E4A40F892BA77841998 /* AccentLevelTests.swift in Sources */,
+				52AB8D4BB686923793F9697A /* BeatEventTests.swift in Sources */,
+				78D72D423AF9F213DDA3BF51 /* BeatMathTests.swift in Sources */,
+				29B31AE4769C2F67B56241AB /* ClickSynthTests.swift in Sources */,
+				E5A435A76E94E20B35DFF021 /* FlashPolicyTests.swift in Sources */,
+				96A06E7B7ECD36A2FD420843 /* MetronomeEngineTests.swift in Sources */,
+				785A526FB9B4B2F397C4A040 /* MetronomeStateTests.swift in Sources */,
+				D044C447F8C56AD4946CE56A /* PersistenceTests.swift in Sources */,
+				FC3F9961C0C53359276A31D3 /* PolyVoiceTests.swift in Sources */,
+				5ED7A7B481A344932B636136 /* PresetTests.swift in Sources */,
+				C56A9D383C912D7208DACE32 /* PulseGridTests.swift in Sources */,
+				152F5661E8CC357B7B10C49A /* PulseSchedulerTests.swift in Sources */,
+				41F620C320D3F1DC708D714B /* SmokeTests.swift in Sources */,
+				DC77D7B3C6F3313D825DC7B7 /* StepAccumulatorTests.swift in Sources */,
+				27335FE0A6AE6E41D59B0A2C /* TapTempoTests.swift in Sources */,
+				6F9ED195946705AE6F4D1389 /* ThemeContrastTests.swift in Sources */,
+				D7AEDD471903DED458CCCBAE /* TimeSignatureTests.swift in Sources */,
+				5F86C9B1603BA6D0A362B155 /* TrainerTests.swift in Sources */,
+				356E907A9B160893C2A9E6A3 /* WindowSizeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E771FBFD9D6ECFAF38FF1D2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				073F53F04EA82606222DB955 /* AccentBarsView.swift in Sources */,
+				86DEBF73D754D48D47EBF981 /* AccentLevel+View.swift in Sources */,
+				08D7E4A14D006EE5AF7EE36C /* AccentLevel.swift in Sources */,
+				849336C5CD44D264DDB006F5 /* AppAppearance.swift in Sources */,
+				B5303F3328C1685EFABF23DE /* BeatEvent.swift in Sources */,
+				5B2DDA5941CBCF2DFAC5BC26 /* BeatMath.swift in Sources */,
+				87BCB4889C0C52D5531B9E8E /* ClickSound.swift in Sources */,
+				3F29E2875B8F2432CF50C979 /* ClickSynth.swift in Sources */,
+				B5E3F1788E95FE88EAF4BF5A /* ContentView.swift in Sources */,
+				467890766D6A566505E3E7E3 /* Controls.swift in Sources */,
+				9EE70F70AE02CA4BD20133F8 /* DisplaySettingsView.swift in Sources */,
+				77B9410AEF8118522EA2BADC /* FlashPolicy.swift in Sources */,
+				4A60BAF0154F4AC9DA537F35 /* FloatingWindowConfigurator.swift in Sources */,
+				A779A656B428B1CB66BA161B /* LevelBuffersChannel.swift in Sources */,
+				8703F3150A78F489FE7529BE /* MactronomeApp.swift in Sources */,
+				E4FFA5A9048659ED6491BB24 /* MetronomeEngine.swift in Sources */,
+				AD8274B3079AAFF2E80703F9 /* MetronomeScreen.swift in Sources */,
+				8D96CC771DEEFD44F497F504 /* MetronomeSettings.swift in Sources */,
+				48ABE607A0D6E0CB8C386480 /* MetronomeState.swift in Sources */,
+				6D258B88536D4FF8763F5E24 /* PolyVoice.swift in Sources */,
+				6CAD10C33E17542F55D8BBE3 /* Preset.swift in Sources */,
+				AA45D074DAF08B66FFE3438F /* PresetBarView.swift in Sources */,
+				FA254596ECD786D13EE1552A /* PulseGrid.swift in Sources */,
+				99467EB28159BE1A24559410 /* PulseScheduler.swift in Sources */,
+				B61F613E079D1C5F56A376EF /* SettingsScreen.swift in Sources */,
+				C6C20A50BB24D3DDFAB69F22 /* StepAccumulator.swift in Sources */,
+				48819EBF0123ADEE64DB1E31 /* SubdivisionGridView.swift in Sources */,
+				24A7F9E74EEEB293A749132F /* TapTempo.swift in Sources */,
+				F6905990A4B40E1C4731A88C /* Theme.swift in Sources */,
+				AA789E5A1C1032F0B69772B8 /* TimeSignature.swift in Sources */,
+				16167BB363595E615DF91E4F /* TimeSignatureEditorView.swift in Sources */,
+				098B98BE1BE628CE87F4F31F /* TrainerSectionView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		242002234F2754EE3EBF63E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1DD3298AAA99D49F5E0DD359 /* mactronome */;
+			targetProxy = 42EF8B764ED1478A014B2E9D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		218E061FE9B57752C2C8F386 /* GitHubRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronomeTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mactronome.app/Contents/MacOS/mactronome";
+			};
+			name = GitHubRelease;
+		};
+		345997A1CECD4AB261BD8B09 /* GitHubRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = GitHubRelease;
+		};
+		40D40FDB9D85C9C20E265416 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronomeTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mactronome.app/Contents/MacOS/mactronome";
+			};
+			name = Release;
+		};
+		7F85091BBBBA7BED2AF19935 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A81C2C195D49C0F35AFDA177 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = mactronome/mactronome.entitlements;
+				CODE_SIGN_IDENTITY = "3rd Party Mac Developer Application: HONGDAE KIM (3Y3GN487QP)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 3Y3GN487QP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = mactronome/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronome;
+				PROVISIONING_PROFILE_SPECIFIER = "MAC_APP_STORE-20260819";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		B6D90FFE1E708413BDAAF4FC /* GitHubRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = mactronome/mactronome.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: HONGDAE KIM (3Y3GN487QP)";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 3Y3GN487QP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = mactronome/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronome;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = GitHubRelease;
+		};
+		B9F63D4B1B38C34E70C5C157 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronomeTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mactronome.app/Contents/MacOS/mactronome";
+			};
+			name = Debug;
+		};
+		DB4B776F31B52683BC1A18A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F3B46714B0B85C87C27531CF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = mactronome/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.mongmeo.mactronome;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0290E92A67B1AAD1D79AB43F /* Build configuration list for PBXNativeTarget "mactronomeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9F63D4B1B38C34E70C5C157 /* Debug */,
+				218E061FE9B57752C2C8F386 /* GitHubRelease */,
+				40D40FDB9D85C9C20E265416 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6DE8BCAFD072D3F9EF04D415 /* Build configuration list for PBXProject "mactronome" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB4B776F31B52683BC1A18A8 /* Debug */,
+				345997A1CECD4AB261BD8B09 /* GitHubRelease */,
+				7F85091BBBBA7BED2AF19935 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E34B19E1DD68856608A24E40 /* Build configuration list for PBXNativeTarget "mactronome" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3B46714B0B85C87C27531CF /* Debug */,
+				B6D90FFE1E708413BDAAF4FC /* GitHubRelease */,
+				A81C2C195D49C0F35AFDA177 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8C933AD81F30CC7A97A35D82 /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-atomics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+		E938F5EAE24D955377C94580 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1361A992C6F6D16EEAEE7D90 /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8C933AD81F30CC7A97A35D82 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		D4CDB88CED4417817F0EC4BA /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8C933AD81F30CC7A97A35D82 /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
+		D7083B3AEA5144E9570B5BC7 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E938F5EAE24D955377C94580 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 3EAED4EAF7ED165976691F8F /* Project object */;
+}

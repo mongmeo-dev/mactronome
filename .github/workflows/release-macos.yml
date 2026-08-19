@@ -1,0 +1,221 @@
+name: macOS 릴리즈
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: DMG 빌드 및 배포
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: 서명·공증·DMG 배포
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          APP_STORE_CONNECT_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required=(
+            DEVELOPER_ID_CERTIFICATE_BASE64
+            DEVELOPER_ID_CERTIFICATE_PASSWORD
+            APP_STORE_CONNECT_PRIVATE_KEY_BASE64
+            APP_STORE_CONNECT_KEY_ID
+            APP_STORE_CONNECT_ISSUER_ID
+            APPLE_TEAM_ID
+            SPARKLE_PRIVATE_KEY
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "필수 GitHub Actions secret이 없습니다: ${name}" >&2
+              exit 1
+            fi
+          done
+
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "릴리즈 태그는 v1.2.3 형식이어야 합니다: ${TAG}" >&2
+            exit 1
+          fi
+
+          APP_NAME="mactronome"
+          BUILD_NUMBER="${{ github.run_number }}"
+          DERIVED_DATA="$RUNNER_TEMP/DerivedData"
+          ARCHIVE_PATH="$RUNNER_TEMP/${APP_NAME}.xcarchive"
+          APP_PATH="$ARCHIVE_PATH/Products/Applications/${APP_NAME}.app"
+          OUTPUT_DIR="$GITHUB_WORKSPACE/release"
+          DMG_NAME="Mactronome-${VERSION}.dmg"
+          DMG_PATH="$OUTPUT_DIR/$DMG_NAME"
+          KEYCHAIN_PATH="$RUNNER_TEMP/mactronome-build.keychain-db"
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          ASC_KEY_PATH="$RUNNER_TEMP/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+          SPARKLE_KEY_PATH="$RUNNER_TEMP/sparkle-private-key"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          export CERTIFICATE_PATH ASC_KEY_PATH SPARKLE_KEY_PATH
+
+          cleanup() {
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          }
+          trap cleanup EXIT
+
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+
+          Path(os.environ["CERTIFICATE_PATH"]).write_bytes(
+              base64.b64decode(os.environ["DEVELOPER_ID_CERTIFICATE_BASE64"])
+          )
+          Path(os.environ["ASC_KEY_PATH"]).write_bytes(
+              base64.b64decode(os.environ["APP_STORE_CONNECT_PRIVATE_KEY_BASE64"])
+          )
+          Path(os.environ["SPARKLE_KEY_PATH"]).write_text(
+              os.environ["SPARKLE_PRIVATE_KEY"].strip() + "\n"
+          )
+          PY
+          chmod 600 "$CERTIFICATE_PATH" "$ASC_KEY_PATH" "$SPARKLE_KEY_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$DEVELOPER_ID_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          xcodebuild archive \
+            -project mactronome.xcodeproj \
+            -scheme mactronome \
+            -configuration GitHubRelease \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            -archivePath "$ARCHIVE_PATH" \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            "OTHER_CODE_SIGN_FLAGS=--keychain $KEYCHAIN_PATH"
+
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+          APP_ZIP="$RUNNER_TEMP/${APP_NAME}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$APP_ZIP"
+          xcrun notarytool submit "$APP_ZIP" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --issuer "$APP_STORE_CONNECT_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+
+          mkdir -p "$OUTPUT_DIR"
+          STAGING_DIR="$RUNNER_TEMP/dmg"
+          mkdir -p "$STAGING_DIR"
+          ditto "$APP_PATH" "$STAGING_DIR/${APP_NAME}.app"
+          ln -s /Applications "$STAGING_DIR/Applications"
+          hdiutil create \
+            -volname Mactronome \
+            -srcfolder "$STAGING_DIR" \
+            -format UDZO \
+            -ov \
+            "$DMG_PATH"
+
+          xcrun notarytool submit "$DMG_PATH" \
+            --key "$ASC_KEY_PATH" \
+            --key-id "$APP_STORE_CONNECT_KEY_ID" \
+            --issuer "$APP_STORE_CONNECT_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+
+          SIGN_UPDATE="$DERIVED_DATA/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
+          SIGNATURE_OUTPUT="$("$SIGN_UPDATE" --ed-key-file "$SPARKLE_KEY_PATH" "$DMG_PATH")"
+          export TAG VERSION BUILD_NUMBER DMG_NAME DMG_PATH SIGNATURE_OUTPUT GITHUB_REPOSITORY
+          python3 - <<'PY'
+          import email.utils
+          import os
+          import re
+          import urllib.parse
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from xml.sax.saxutils import escape
+
+          attrs = os.environ["SIGNATURE_OUTPUT"]
+          signature = re.search(r'sparkle:edSignature="([^"]+)"', attrs)
+          length = re.search(r'length="([0-9]+)"', attrs)
+          if signature is None or length is None:
+              raise SystemExit(f"Sparkle 서명 결과를 해석할 수 없습니다: {attrs}")
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          tag = os.environ["TAG"]
+          filename = os.environ["DMG_NAME"]
+          download_url = (
+              f"https://github.com/{repository}/releases/download/"
+              f"{urllib.parse.quote(tag, safe='')}/{urllib.parse.quote(filename)}"
+          )
+          release_url = f"https://github.com/{repository}/releases/tag/{urllib.parse.quote(tag, safe='')}"
+          pub_date = email.utils.format_datetime(datetime.now(timezone.utc), usegmt=True)
+          version = escape(os.environ["VERSION"])
+          build = escape(os.environ["BUILD_NUMBER"])
+
+          appcast = f'''<?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>Mactronome 업데이트</title>
+              <link>https://github.com/{repository}/releases</link>
+              <description>Mactronome GitHub 릴리즈 업데이트</description>
+              <language>ko</language>
+              <item>
+                <title>버전 {version}</title>
+                <link>{release_url}</link>
+                <pubDate>{pub_date}</pubDate>
+                <sparkle:version>{build}</sparkle:version>
+                <sparkle:shortVersionString>{version}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.0.0</sparkle:minimumSystemVersion>
+                <enclosure url="{download_url}"
+                  sparkle:edSignature="{signature.group(1)}"
+                  length="{length.group(1)}"
+                  type="application/octet-stream" />
+              </item>
+            </channel>
+          </rss>
+          '''
+          Path("release/appcast.xml").write_text(appcast, encoding="utf-8")
+          PY
+
+          shasum -a 256 "$DMG_PATH" > "$DMG_PATH.sha256"
+          gh release upload "$TAG" \
+            "$DMG_PATH" \
+            "$DMG_PATH.sha256" \
+            "$OUTPUT_DIR/appcast.xml" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
