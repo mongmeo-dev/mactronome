@@ -80,11 +80,12 @@ final class PulseScheduler {
         let idx = pulseIndex % plan.pulseCount
         let level = plan.levels[idx]
         let beatIndex = plan.beatBoundaries[idx]
+        let pulseOffset = plan.pulseOffsets[idx]
 
         framesUntilNextPulse = framesPerPulse(for: plan) - 1
         pulseIndex = (idx + 1) % plan.pulseCount
         lastFiredBeat = beatIndex
 
-        return Tick(didFire: true, pulseIndex: idx, beatIndex: beatIndex, level: level)
+        return Tick(didFire: true, pulseIndex: pulseOffset, beatIndex: beatIndex, level: level)
     }
 }

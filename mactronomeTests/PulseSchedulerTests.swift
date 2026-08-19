@@ -36,10 +36,23 @@ final class PulseSchedulerTests: XCTestCase {
             let t = s.advanceOneFrame()
             if t.didFire { events.append((f, t.pulseIndex, t.level)) }
         }
-        // frames 0,5,10,15,20 에서 발화; 펄스 인덱스 0,1,2,3,0; 레벨 3,1,2,1,3
+        // frames 0,5,10,15,20 에서 발화; 각 박 안의 펄스 인덱스 0,1,0,1,0.
         XCTAssertEqual(events.map { $0.0 }, [0,5,10,15,20])
-        XCTAssertEqual(events.map { $0.1 }, [0,1,2,3,0])
+        XCTAssertEqual(events.map { $0.1 }, [0,1,0,1,0])
         XCTAssertEqual(events.map { $0.2 }, [3,1,2,1,3])
+    }
+
+    func test_pulseIndexResetsAtEveryBeatBoundary() {
+        let s = makeScheduler(grid: [[3], [1], [2], [1]], pulsesPerBeat: 1, framesPerBeat: 1)
+        var events: [(beat: Int, pulse: Int)] = []
+
+        for _ in 0..<4 {
+            let tick = s.advanceOneFrame()
+            events.append((tick.beatIndex, tick.pulseIndex))
+        }
+
+        XCTAssertEqual(events.map(\.beat), [0, 1, 2, 3])
+        XCTAssertEqual(events.map(\.pulse), [0, 0, 0, 0])
     }
 
     func test_beatIndexTracksBoundaries() {

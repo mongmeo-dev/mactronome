@@ -110,43 +110,48 @@ struct MetronomeScreen: View {
     // MARK: - Beat poller (오디오 스레드 → UI 활성 비트 배선)
 
     /// 재생 중 ~60Hz 로 락프리 `beatChannel.latest()` 를 폴링해 활성 비트를 갱신합니다.
-    /// 렌더 콜백/오디오 스레드로는 절대 진입하지 않고, 메인 스레드에서 atomic load만 읽습니다.
-    /// 보이지 않는 배경 뷰로 배치해 레이아웃에 영향을 주지 않습니다.
-    @ViewBuilder
+    /// `.animation` TimelineView는 실제 애니메이션이 없으면 Release 빌드에서 틱을 멈출 수 있으므로,
+    /// 뷰 수명에 연결된 Task를 사용해 일정하게 폴링합니다.
     private var beatPoller: some View {
-        if state.isPlaying {
-            TimelineView(.animation) { _ in
-                Color.clear
-                    .onChange(of: pollSequence()) { _, _ in
-                        let snapshot = state.engine.beatChannel.latest()
-                        lastSequence = snapshot.sequence
-                        activePulse = (beat: snapshot.beatIndex, pulse: snapshot.pulseIndex)
-                        // 다운비트(0박·0펄스)에서 마디 시작을 알림(마디 카운터/트레이너/카운트인 구동).
-                        if snapshot.beatIndex == 0 && snapshot.pulseIndex == 0 {
-                            state.registerBarStart()
-                        }
-                        // 비주얼 플래시: 박 단위 + 최소 간격으로 점멸률을 제한합니다.
-                        // (제한 없이 매 펄스 점멸하면 고 BPM·잘게 쪼갠 분할에서
-                        //  초당 수십 회 전체 화면 명멸이 발생합니다.)
-                        if state.visualFlash {
-                            let now = Date().timeIntervalSinceReferenceDate
-                            let isBeatStart = snapshot.pulseIndex == 0
-                            if flashPolicy.shouldFlash(at: now, isBeatStart: isBeatStart) {
-                                flashOpacity = FlashPolicy.peakOpacity(
-                                    isAccent: snapshot.isAccent, reduceMotion: reduceMotion
-                                )
-                                let fade = FlashPolicy.fadeDuration(reduceMotion: reduceMotion)
-                                withAnimation(.easeOut(duration: fade)) { flashOpacity = 0 }
-                            }
-                        }
+        Color.clear
+            .frame(width: 0, height: 0)
+            .task(id: state.isPlaying) {
+                guard state.isPlaying else { return }
+                while !Task.isCancelled {
+                    consumeLatestBeat()
+                    do {
+                        try await Task.sleep(for: .milliseconds(16))
+                    } catch {
+                        break
                     }
+                }
             }
-        }
     }
 
-    /// 타임라인 틱마다 최신 sequence 를 읽어 반환합니다(onChange 트리거용).
-    private func pollSequence() -> UInt64 {
-        state.engine.beatChannel.latest().sequence
+    private func consumeLatestBeat() {
+        let snapshot = state.engine.beatChannel.latest()
+        guard snapshot.sequence != lastSequence else { return }
+
+        lastSequence = snapshot.sequence
+        activePulse = (beat: snapshot.beatIndex, pulse: snapshot.pulseIndex)
+        // 다운비트(0박·0펄스)에서 마디 시작을 알림(마디 카운터/트레이너/카운트인 구동).
+        if snapshot.beatIndex == 0 && snapshot.pulseIndex == 0 {
+            state.registerBarStart()
+        }
+        // 비주얼 플래시: 박 단위 + 최소 간격으로 점멸률을 제한합니다.
+        // (제한 없이 매 펄스 점멸하면 고 BPM·잘게 쪼갠 분할에서
+        //  초당 수십 회 전체 화면 명멸이 발생합니다.)
+        if state.visualFlash {
+            let now = Date().timeIntervalSinceReferenceDate
+            let isBeatStart = snapshot.pulseIndex == 0
+            if flashPolicy.shouldFlash(at: now, isBeatStart: isBeatStart) {
+                flashOpacity = FlashPolicy.peakOpacity(
+                    isAccent: snapshot.isAccent, reduceMotion: reduceMotion
+                )
+                let fade = FlashPolicy.fadeDuration(reduceMotion: reduceMotion)
+                withAnimation(.easeOut(duration: fade)) { flashOpacity = 0 }
+            }
+        }
     }
 
     // MARK: - Title bar (제목)

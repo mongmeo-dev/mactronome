@@ -27,4 +27,26 @@ final class MetronomeEngineTests: XCTestCase {
         e.stop()
         XCTAssertFalse(e.isRunning)
     }
+
+    func test_playbackPublishesEveryBeatIndex() throws {
+        let e = MetronomeEngine()
+        defer { e.shutdown() }
+        e.updateBPM(300)
+        e.updateGrid([[3], [1], [2], [1]], pulsesPerBeat: 1)
+        try e.start()
+
+        let deadline = Date().addingTimeInterval(1.2)
+        var observedBeats = Set<Int>()
+        var lastSequence: UInt64 = 0
+        while Date() < deadline, observedBeats.count < 4 {
+            let snapshot = e.beatChannel.latest()
+            if snapshot.sequence != lastSequence {
+                lastSequence = snapshot.sequence
+                observedBeats.insert(snapshot.beatIndex)
+            }
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+
+        XCTAssertEqual(observedBeats, Set(0..<4))
+    }
 }

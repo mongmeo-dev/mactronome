@@ -5,22 +5,26 @@ import Atomics
 struct PulsePlan {
     let levels: [Int]          // 전체 펄스의 강세 레벨(일렬)
     let beatBoundaries: [Int]  // 각 펄스의 소속 박자 인덱스
+    let pulseOffsets: [Int]    // 각 펄스가 해당 박 안에서 가지는 인덱스
     let pulseCount: Int
     let pulsesPerBeat: Int
 
     init(grid: [[Int]], pulsesPerBeat: Int) {
         var lv: [Int] = []
         var bb: [Int] = []
+        var po: [Int] = []
         for (b, row) in grid.enumerated() {
-            for level in row {
+            for (pulse, level) in row.enumerated() {
                 lv.append(level)
                 bb.append(b)
+                po.append(pulse)
             }
         }
         // 빈 grid 방어: 최소 1펄스(무음) 보장
-        if lv.isEmpty { lv = [0]; bb = [0] }
+        if lv.isEmpty { lv = [0]; bb = [0]; po = [0] }
         self.levels = lv
         self.beatBoundaries = bb
+        self.pulseOffsets = po
         self.pulseCount = lv.count
         self.pulsesPerBeat = max(1, pulsesPerBeat)
     }
