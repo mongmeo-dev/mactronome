@@ -183,6 +183,9 @@ jobs:
             -format UDZO \
             -ov \
             "$DMG_PATH"
+          codesign --force --sign "$CODE_SIGN_IDENTITY" \
+            --keychain "$KEYCHAIN_PATH" --options runtime --timestamp \
+            "$DMG_PATH"
 
           xcrun notarytool submit "$DMG_PATH" \
             --key "$ASC_KEY_PATH" \
@@ -247,7 +250,10 @@ jobs:
           Path("release/appcast.xml").write_text(appcast, encoding="utf-8")
           PY
 
-          shasum -a 256 "$DMG_PATH" > "$DMG_PATH.sha256"
+          (
+            cd "$OUTPUT_DIR"
+            shasum -a 256 "$DMG_NAME" > "$DMG_NAME.sha256"
+          )
           gh release upload "$TAG" \
             "$DMG_PATH" \
             "$DMG_PATH.sha256" \
