@@ -152,6 +152,17 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertEqual(capped, 190, accuracy: 0.001) // 87×2 + 16
     }
 
+    /// 두 줄이 모두 보이는 경우에는 불필요한 스크롤을 만들지 않아야 합니다.
+    func test_twoVisibleRows_doNotNeedScrolling() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 4, pulses: 6), 2)
+        XCTAssertFalse(AccentBarsView.needsScrolling(beatCount: 4, pulses: 6))
+    }
+
+    /// 표시 상한을 넘는 경우에만 세로 스크롤이 필요합니다.
+    func test_rowsBeyondVisibleCap_needScrolling() {
+        XCTAssertTrue(AccentBarsView.needsScrolling(beatCount: 12, pulses: 6))
+    }
+
     /// 어떤 박자/분할 조합에서도 표시 높이는 상한을 넘지 않아야 합니다.
     func test_visibleHeight_neverExceedsCap_forAnyConfiguration() {
         let cap = AccentBarsView.singleGroupRowHeight * CGFloat(AccentBarsView.maxVisibleRows)

@@ -80,15 +80,6 @@ struct AccentBarsView: View {
         return beatCount > groupsPerRow(pulses: pulses, availableWidth: availableWidth)
     }
 
-    /// 현재 grid 기준으로 한 줄 배치가 넘치는지 판단합니다.
-    private var overflowsSingleRow: Bool {
-        Self.overflowsSingleRow(
-            beatCount: grid.count,
-            pulses: grid.first?.count ?? 0,
-            availableWidth: layoutWidth
-        )
-    }
-
     /// 실제 렌더될 박자 그룹 "줄" 수를 계산합니다.
     /// 한 줄에 들어가면 1, 넘치면 `groupsPerRow(pulses:)`개씩 끊어 올림 계산합니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
@@ -140,13 +131,17 @@ struct AccentBarsView: View {
             + rowSpacing * CGFloat(rows - 1)
     }
 
-    /// 현재 grid 기준 콘텐츠 높이입니다.
-    private var contentHeight: CGFloat {
-        Self.contentHeight(
-            beatCount: grid.count,
-            pulses: grid.first?.count ?? 0,
-            availableWidth: layoutWidth
-        )
+    /// 표시 가능한 줄 수를 실제 콘텐츠가 넘을 때만 스크롤이 필요합니다.
+    static func needsScrolling(
+        beatCount: Int,
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> Bool {
+        rowCount(
+            beatCount: beatCount,
+            pulses: pulses,
+            availableWidth: availableWidth
+        ) > maxVisibleRows
     }
 
     /// 현재 grid 기준 실제 표시 높이입니다.
@@ -159,24 +154,49 @@ struct AccentBarsView: View {
     }
 
     var body: some View {
-        Group {
-            if overflowsSingleRow {
-                ScrollView(.vertical) {
-                    wrappedRows
-                }
-                // 상한 안에 다 들어오면 스크롤 제스처를 막아 오작동을 없앱니다.
-                .scrollDisabled(contentHeight <= visibleHeight)
-            } else {
-                singleRow
-            }
+        GeometryReader { geometry in
+            barsContent(availableWidth: max(1, geometry.size.width))
+                .frame(maxWidth: .infinity)
         }
-        // 표시 높이를 계산값으로 고정해, .contentSize 창이 정확한 높이를
-        // 갖도록 합니다(줄바꿈 시 잘림/겹침 방지 + 창 높이 상한 확보).
+        // 높이 계산용 상태와 무관하게 GeometryReader의 실제 폭으로 즉시 배치합니다.
+        // 최종 자식의 폭을 다시 측정하면 좁게 배치된 결과가 다음 측정 폭이 되는
+        // 피드백 루프가 생겨, 창이 넓어도 한 박씩 줄바꿈될 수 있습니다.
         .frame(height: visibleHeight)
         .onGeometryChange(for: CGFloat.self) { geometry in
             geometry.size.width
         } action: { newWidth in
-            layoutWidth = max(1, newWidth)
+            guard newWidth > 0 else { return }
+            layoutWidth = newWidth
+        }
+    }
+
+    @ViewBuilder
+    private func barsContent(availableWidth: CGFloat) -> some View {
+        let overflowsSingleRow = Self.overflowsSingleRow(
+            beatCount: grid.count,
+            pulses: grid.first?.count ?? 0,
+            availableWidth: availableWidth
+        )
+        let needsScrolling = Self.needsScrolling(
+            beatCount: grid.count,
+            pulses: grid.first?.count ?? 0,
+            availableWidth: availableWidth
+        )
+
+        Group {
+            if overflowsSingleRow {
+                if needsScrolling {
+                    ScrollView(.vertical) {
+                        wrappedRows(availableWidth: availableWidth)
+                    }
+                } else {
+                    // 두 줄까지는 모두 보이므로 ScrollView를 만들지 않습니다.
+                    // 비활성 ScrollView도 macOS에서 스크롤바를 표시할 수 있습니다.
+                    wrappedRows(availableWidth: availableWidth)
+                }
+            } else {
+                singleRow
+            }
         }
     }
 
@@ -190,11 +210,11 @@ struct AccentBarsView: View {
     }
 
     /// 넘칠 때: 가용 폭이 허용하는 만큼(`groupsPerRow`)씩 끊어 여러 줄로 배치합니다.
-    private var wrappedRows: some View {
+    private func wrappedRows(availableWidth: CGFloat) -> some View {
         let indexedRows = Array(grid.enumerated())
         let perRow = Self.groupsPerRow(
             pulses: grid.first?.count ?? 0,
-            availableWidth: layoutWidth
+            availableWidth: availableWidth
         )
         let chunks = stride(from: 0, to: indexedRows.count, by: perRow).map { start in
             Array(indexedRows[start..<min(start + perRow, indexedRows.count)])
