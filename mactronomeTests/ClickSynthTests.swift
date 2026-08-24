@@ -39,15 +39,16 @@ final class ClickSynthTests: XCTestCase {
     }
 
     func test_makeLevelBuffers_timbresDiffer() {
-        let wb = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .woodBlock)[3]
         let beep = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .beep)[3]
-        XCTAssertNotEqual(wb, beep)
+        let digital = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .digital)[3]
+        let clave = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .clave)[3]
+        XCTAssertNotEqual(beep, digital)
+        XCTAssertNotEqual(beep, clave)
+        XCTAssertNotEqual(digital, clave)
     }
 
-    func test_noiseWaveform_isDeterministic() {
-        let a = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .click)[3]
-        let b = ClickSynth.makeLevelBuffers(sampleRate: 44100, sound: .click)[3]
-        XCTAssertEqual(a, b) // 고정 시드 → 재현 가능
+    func test_clickSound_onlyContainsPlausibleTimbres() {
+        XCTAssertEqual(ClickSound.allCases, [.beep, .digital, .clave])
     }
 
 }

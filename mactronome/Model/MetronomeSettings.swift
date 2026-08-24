@@ -61,7 +61,7 @@ struct MetronomeSettings: Codable, Equatable {
         denom = try c.decode(String.self, forKey: .denom)
         subIdx = try c.decode(Int.self, forKey: .subIdx)
         grid = try c.decode([[Int]].self, forKey: .grid)
-        sound = try c.decodeIfPresent(ClickSound.self, forKey: .sound) ?? .woodBlock
+        sound = try c.decodeIfPresent(ClickSound.self, forKey: .sound) ?? .beep
         volume = try c.decodeIfPresent(Double.self, forKey: .volume) ?? 0.8
         trainerEnabled = try c.decodeIfPresent(Bool.self, forKey: .trainerEnabled) ?? false
         trainerEveryBars = try c.decodeIfPresent(Int.self, forKey: .trainerEveryBars) ?? 2

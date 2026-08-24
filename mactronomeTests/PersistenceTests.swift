@@ -20,7 +20,7 @@ final class PersistenceTests: XCTestCase {
         a.setBPM(150)
         a.setDenom("8")
         a.setSubdivision(2)
-        a.sound = .cowbell
+        a.sound = .digital
         a.volume = 0.5
         a.cycleCell(beat: 0, pulse: 0) // strong -> mute
 
@@ -29,7 +29,7 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(b.bpm, 150)
         XCTAssertEqual(b.denom, "8")
         XCTAssertEqual(b.subIdx, 2)
-        XCTAssertEqual(b.sound, .cowbell)
+        XCTAssertEqual(b.sound, .digital)
         XCTAssertEqual(b.volume, 0.5, accuracy: 0.0001)
         XCTAssertEqual(b.grid[0][0], .mute)
     }

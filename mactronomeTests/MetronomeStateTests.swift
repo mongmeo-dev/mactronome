@@ -202,7 +202,7 @@ final class MetronomeStateTests: XCTestCase {
 
     func test_defaultSoundAndVolume() {
         let state = MetronomeState()
-        XCTAssertEqual(state.sound, .woodBlock)
+        XCTAssertEqual(state.sound, .beep)
         XCTAssertEqual(state.volume, 0.8, accuracy: 0.0001)
     }
 

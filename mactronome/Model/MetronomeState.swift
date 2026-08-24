@@ -26,7 +26,7 @@ final class MetronomeState: ObservableObject {
         didSet { engine.updateBPM(bpm); persist() }
     }
     /// 클릭 음색입니다.
-    @Published var sound: ClickSound = .woodBlock {
+    @Published var sound: ClickSound = .beep {
         didSet { engine.updateSound(sound); persist() }
     }
     /// 마스터 볼륨(0...1)입니다.
