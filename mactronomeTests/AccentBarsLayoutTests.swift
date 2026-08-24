@@ -14,9 +14,9 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertEqual(AccentBarsView.groupWidth(pulses: 1), 28, accuracy: 0.001)
     }
 
-    /// pulses=6(6잇단): 28 + 11×5 + 4×5 = 103.
+    /// pulses=6(6잇단): 28 + 11×5 + 10×5 = 133.
     func test_groupWidth_sextuplet() {
-        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 6), 103, accuracy: 0.001)
+        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 6), 133, accuracy: 0.001)
     }
 
     /// pulses 가 0이면 폭은 0입니다(음수 방지).
@@ -27,6 +27,7 @@ final class AccentBarsLayoutTests: XCTestCase {
     /// 원박-분할박과 분할박-다음 원박 사이의 간격은 같아야 합니다.
     func test_spacingBetweenBeats_matchesSpacingWithinBeat() {
         XCTAssertEqual(AccentBarsView.beatSpacing, AccentBarsView.barSpacing)
+        XCTAssertEqual(AccentBarsView.barSpacing, 10)
     }
 
     // MARK: - overflowsSingleRow
@@ -36,18 +37,18 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 1))
     }
 
-    /// 16분음표(pulses=4) 4박자까지는 기존처럼 한 줄에 들어가야 합니다(기존 동작 유지).
-    func test_singleRow_sixteenthFourBeats_fits() {
-        // 그룹폭 = 28 + 11×3 + 4×3 = 73. 4개 = 292 + spacing 4×3(12) = 304 ≤ 392.
-        XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 4))
+    /// 16분음표(pulses=4) 4박자는 10pt 간격에서 가용 폭을 넘습니다.
+    func test_singleRow_sixteenthFourBeats_overflows() {
+        // 그룹폭 = 28 + 11×3 + 10×3 = 91. 4개 = 364 + spacing 10×3(30) = 394 > 392.
+        XCTAssertTrue(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 4))
     }
 
-    /// 6잇단(pulses=6) 4박자는 한 줄 폭(424pt)이 가용 폭 392를 넘습니다 → 줄바꿈 필요.
+    /// 6잇단(pulses=6) 4박자는 한 줄 폭(562pt)이 가용 폭 392를 넘습니다 → 줄바꿈 필요.
     func test_sextuplet_fourBeats_overflows() {
         XCTAssertTrue(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 6))
     }
 
-    /// 6잇단이라도 박자 2개면 한 줄(210pt)에 들어갑니다 → 넘치지 않음.
+    /// 6잇단이라도 박자 2개면 한 줄(276pt)에 들어갑니다 → 넘치지 않음.
     func test_sextuplet_twoBeats_fits() {
         XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 2, pulses: 6))
     }
@@ -66,19 +67,19 @@ final class AccentBarsLayoutTests: XCTestCase {
     // MARK: - groupsPerRow
 
     /// 가용 폭 안에 실제로 들어가는 개수를 계산해야 합니다(과거엔 상수 2 고정).
-    /// 4분음표 그룹폭 28 → 28×12 + 4×11 = 380 ≤ 392 이므로 최대 설정 12개가 들어갑니다.
-    func test_groupsPerRow_quarterNote_twelvePerRow() {
-        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 1), 12)
+    /// 4분음표 그룹폭 28 → 28×10 + 10×9 = 370 ≤ 392, 11개면 408 > 392 이므로 10개.
+    func test_groupsPerRow_quarterNote_tenPerRow() {
+        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 1), 10)
     }
 
-    /// 8분음표 그룹폭 43 → 43×8 + 4×7 = 372 ≤ 392, 9개면 419 > 392 이므로 8개.
-    func test_groupsPerRow_eighthNote_eightPerRow() {
-        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 2), 8)
+    /// 8분음표 그룹폭 49 → 49×6 + 10×5 = 344 ≤ 392, 7개면 403 > 392 이므로 6개.
+    func test_groupsPerRow_eighthNote_sixPerRow() {
+        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 2), 6)
     }
 
-    /// 6잇단 그룹폭 103 → 103×3 + 4×2 = 317 ≤ 392, 4개면 424 > 392 이므로 3개.
-    func test_groupsPerRow_sextuplet_threePerRow() {
-        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 6), 3)
+    /// 6잇단 그룹폭 133 → 133×2 + 10 = 276 ≤ 392, 3개면 419 > 392 이므로 2개.
+    func test_groupsPerRow_sextuplet_twoPerRow() {
+        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 6), 2)
     }
 
     /// 계산된 개수는 언제나 실제로 가용 폭 안에 들어가고,
@@ -89,9 +90,9 @@ final class AccentBarsLayoutTests: XCTestCase {
             let width = AccentBarsView.groupWidth(pulses: pulses)
             let used = width * CGFloat(n) + AccentBarsView.beatSpacing * CGFloat(n - 1)
             let usedPlusOne = width * CGFloat(n + 1) + AccentBarsView.beatSpacing * CGFloat(n)
-            XCTAssertLessThanOrEqual(used, AccentBarsView.availableWidth,
+            XCTAssertLessThanOrEqual(used, AccentBarsView.defaultAvailableWidth,
                                      "pulses=\(pulses): \(n)개가 가용 폭을 넘습니다")
-            XCTAssertGreaterThan(usedPlusOne, AccentBarsView.availableWidth,
+            XCTAssertGreaterThan(usedPlusOne, AccentBarsView.defaultAvailableWidth,
                                  "pulses=\(pulses): \(n + 1)개도 들어가는데 덜 배치했습니다")
         }
     }
@@ -108,16 +109,28 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertEqual(AccentBarsView.rowCount(beatCount: 8, pulses: 1), 1)
     }
 
-    /// 4분음표 최대 설정 12박도 한 줄에 들어갑니다.
-    func test_quarterNoteTwelveBeats_isOneRow() {
-        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 1), 1)
-        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 1), 87, accuracy: 0.001)
+    /// 4분음표 최대 설정 12박은 기본 폭에서 2줄로 배치됩니다.
+    func test_quarterNoteTwelveBeats_isTwoRows() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 1), 2)
+        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 1), 190, accuracy: 0.001)
     }
 
-    /// 최대 설정(12박 × 6잇단)에서도 4줄로 끝나야 합니다(과거 6줄, 602pt).
-    func test_worstCase_twelveBeatsSextuplet_isFourRows() {
-        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 6), 4)
-        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 6), 396, accuracy: 0.001)
+    /// 최대 설정(12박 × 6잇단)은 기본 폭에서 6줄입니다.
+    func test_worstCase_twelveBeatsSextuplet_isSixRows() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 6), 6)
+        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 6), 602, accuracy: 0.001)
+    }
+
+    /// 창을 넓히면 같은 박자들이 더 적은 줄로 재배치되어야 합니다.
+    func test_rowCount_decreasesAsAvailableWidthGrows() {
+        XCTAssertEqual(
+            AccentBarsView.rowCount(beatCount: 4, pulses: 6, availableWidth: 392),
+            2
+        )
+        XCTAssertEqual(
+            AccentBarsView.rowCount(beatCount: 4, pulses: 6, availableWidth: 562),
+            1
+        )
     }
     // MARK: - visibleHeight (창 높이 상한)
 
@@ -161,15 +174,14 @@ final class AccentBarsLayoutTests: XCTestCase {
         XCTAssertEqual(AccentBarsView.rowCount(beatCount: 4, pulses: 1), 1)
     }
 
-    /// 6잇단 4박자는 한 줄 한도(3개)를 넘어 2줄(3+1)이 됩니다.
+    /// 6잇단 4박자는 한 줄 한도(2개)를 넘어 2줄(2+2)이 됩니다.
     func test_rowCount_sextupletFourBeats_twoRows() {
         XCTAssertEqual(AccentBarsView.rowCount(beatCount: 4, pulses: 6), 2)
     }
 
-    /// 6잇단 5박자도 3개씩 끊으면 2줄(3+2)입니다.
-    /// (상수 2 고정 시절에는 3줄이었습니다.)
-    func test_rowCount_sextupletFiveBeats_twoRows() {
-        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 5, pulses: 6), 2)
+    /// 6잇단 5박자는 2개씩 끊으면 3줄(2+2+1)입니다.
+    func test_rowCount_sextupletFiveBeats_threeRows() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 5, pulses: 6), 3)
     }
 
     /// 박자 0개는 줄이 없습니다.

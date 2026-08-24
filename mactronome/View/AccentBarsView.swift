@@ -15,6 +15,8 @@ struct AccentBarsView: View {
     let onCycle: (Int, Int) -> Void
     /// 컨텍스트 메뉴에서 강세를 직접 지정할 때 호출합니다(beat, pulse, level).
     let onSet: (Int, Int, AccentLevel) -> Void
+    /// 현재 뷰에 제안된 가로 폭입니다. 창 리사이즈 시 줄바꿈 계산에 반영합니다.
+    @State private var layoutWidth = Self.defaultAvailableWidth
 
     // MARK: - Layout 상수 (폭 계산과 바 렌더가 공유하는 단일 소스)
 
@@ -22,14 +24,14 @@ struct AccentBarsView: View {
     static let mainBarWidth: CGFloat = 28
     /// 서브 바 폭.
     static let subBarWidth: CGFloat = 11
-    /// 박자 그룹 내 바 사이 간격.
-    static let barSpacing: CGFloat = 4
+    /// 원박·분할박을 포함한 모든 바 사이 간격.
+    static let barSpacing: CGFloat = 10
     /// 박자 그룹 사이 간격. 그룹 내부 바 간격과 같아 모든 펄스가 일정하게 이어집니다.
     static let beatSpacing: CGFloat = barSpacing
     /// 여러 줄로 배치할 때 줄 사이 간격.
     static let rowSpacing: CGFloat = 16
-    /// 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
-    static let availableWidth: CGFloat = 392
+    /// 기본 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
+    static let defaultAvailableWidth: CGFloat = 392
 
     // MARK: - 높이 계산 상수 (한 줄이 실제로 차지하는 세로 크기)
 
@@ -56,7 +58,10 @@ struct AccentBarsView: View {
     /// 이전에는 상수 2로 고정돼 있어서, 한 줄에 들어가는 박자도
     /// 2개씩 여러 줄로 쪼개지며 창이 불필요하게 세로로 길어졌습니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
-    static func groupsPerRow(pulses: Int) -> Int {
+    static func groupsPerRow(
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> Int {
         let width = groupWidth(pulses: pulses)
         guard width > 0 else { return 1 }
         // n개를 놓으려면 width*n + beatSpacing*(n-1) ≤ availableWidth 여야 합니다.
@@ -66,30 +71,49 @@ struct AccentBarsView: View {
 
     /// 박자 수/펄스 수만으로, 모든 박자 그룹을 한 줄에 놓으면 가용 폭을 넘는지 판단합니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
-    static func overflowsSingleRow(beatCount: Int, pulses: Int) -> Bool {
+    static func overflowsSingleRow(
+        beatCount: Int,
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> Bool {
         guard beatCount > 0 else { return false }
-        return beatCount > groupsPerRow(pulses: pulses)
+        return beatCount > groupsPerRow(pulses: pulses, availableWidth: availableWidth)
     }
 
     /// 현재 grid 기준으로 한 줄 배치가 넘치는지 판단합니다.
     private var overflowsSingleRow: Bool {
-        Self.overflowsSingleRow(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+        Self.overflowsSingleRow(
+            beatCount: grid.count,
+            pulses: grid.first?.count ?? 0,
+            availableWidth: layoutWidth
+        )
     }
 
     /// 실제 렌더될 박자 그룹 "줄" 수를 계산합니다.
     /// 한 줄에 들어가면 1, 넘치면 `groupsPerRow(pulses:)`개씩 끊어 올림 계산합니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
-    static func rowCount(beatCount: Int, pulses: Int) -> Int {
+    static func rowCount(
+        beatCount: Int,
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> Int {
         guard beatCount > 0 else { return 0 }
-        let perRow = groupsPerRow(pulses: pulses)
+        let perRow = groupsPerRow(pulses: pulses, availableWidth: availableWidth)
         return (beatCount + perRow - 1) / perRow
     }
 
     /// 악센트 바 영역이 실제로 필요로 하는 세로 높이입니다.
-    /// `.windowResizability(.contentSize)` 환경에서 창이 여러 줄 높이를 정확히
-    /// 반영하도록, 이상적 높이를 명시하는 데 사용합니다.
-    static func contentHeight(beatCount: Int, pulses: Int) -> CGFloat {
-        let rows = rowCount(beatCount: beatCount, pulses: pulses)
+    /// 창 폭에 따른 줄바꿈 높이를 정확히 반영하는 데 사용합니다.
+    static func contentHeight(
+        beatCount: Int,
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> CGFloat {
+        let rows = rowCount(
+            beatCount: beatCount,
+            pulses: pulses,
+            availableWidth: availableWidth
+        )
         guard rows > 0 else { return singleGroupRowHeight }
         return singleGroupRowHeight * CGFloat(rows)
             + rowSpacing * CGFloat(rows - 1)
@@ -97,14 +121,20 @@ struct AccentBarsView: View {
 
     /// 화면에 한 번에 보여 주는 최대 줄 수입니다. 이를 넘는 줄은 스크롤로 처리합니다.
     ///
-    /// 창은 `.windowResizability(.contentSize)` 라 콘텐츠 높이가 곧 창 높이입니다.
-    /// 12박 × 6잇단(4줄)을 전부 펼치면 창이 1,100pt 가 되어 13" 노트북에서
+    /// 12박 × 6잇단을 전부 펼치면 창이 길어져 13" 노트북에서
     /// 하단 트랜스포트가 화면 밖으로 밀려납니다. 줄 수를 제한해 창 높이 상한을 만듭니다.
     static let maxVisibleRows: Int = 2
 
     /// 악센트 바 영역이 실제로 차지하는 높이입니다(초과 줄은 스크롤).
-    static func visibleHeight(beatCount: Int, pulses: Int) -> CGFloat {
-        let rows = min(rowCount(beatCount: beatCount, pulses: pulses), maxVisibleRows)
+    static func visibleHeight(
+        beatCount: Int,
+        pulses: Int,
+        availableWidth: CGFloat = defaultAvailableWidth
+    ) -> CGFloat {
+        let rows = min(
+            rowCount(beatCount: beatCount, pulses: pulses, availableWidth: availableWidth),
+            maxVisibleRows
+        )
         guard rows > 0 else { return singleGroupRowHeight }
         return singleGroupRowHeight * CGFloat(rows)
             + rowSpacing * CGFloat(rows - 1)
@@ -112,12 +142,20 @@ struct AccentBarsView: View {
 
     /// 현재 grid 기준 콘텐츠 높이입니다.
     private var contentHeight: CGFloat {
-        Self.contentHeight(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+        Self.contentHeight(
+            beatCount: grid.count,
+            pulses: grid.first?.count ?? 0,
+            availableWidth: layoutWidth
+        )
     }
 
     /// 현재 grid 기준 실제 표시 높이입니다.
     private var visibleHeight: CGFloat {
-        Self.visibleHeight(beatCount: grid.count, pulses: grid.first?.count ?? 0)
+        Self.visibleHeight(
+            beatCount: grid.count,
+            pulses: grid.first?.count ?? 0,
+            availableWidth: layoutWidth
+        )
     }
 
     var body: some View {
@@ -135,6 +173,11 @@ struct AccentBarsView: View {
         // 표시 높이를 계산값으로 고정해, .contentSize 창이 정확한 높이를
         // 갖도록 합니다(줄바꿈 시 잘림/겹침 방지 + 창 높이 상한 확보).
         .frame(height: visibleHeight)
+        .onGeometryChange(for: CGFloat.self) { geometry in
+            geometry.size.width
+        } action: { newWidth in
+            layoutWidth = max(1, newWidth)
+        }
     }
 
     /// 한 줄 배치(기존 동작). 모든 그룹이 가용 폭 안에 들어갈 때 사용합니다.
@@ -149,7 +192,10 @@ struct AccentBarsView: View {
     /// 넘칠 때: 가용 폭이 허용하는 만큼(`groupsPerRow`)씩 끊어 여러 줄로 배치합니다.
     private var wrappedRows: some View {
         let indexedRows = Array(grid.enumerated())
-        let perRow = Self.groupsPerRow(pulses: grid.first?.count ?? 0)
+        let perRow = Self.groupsPerRow(
+            pulses: grid.first?.count ?? 0,
+            availableWidth: layoutWidth
+        )
         let chunks = stride(from: 0, to: indexedRows.count, by: perRow).map { start in
             Array(indexedRows[start..<min(start + perRow, indexedRows.count)])
         }
