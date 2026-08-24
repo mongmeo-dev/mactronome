@@ -14,9 +14,9 @@ extension SubdivisionOption {
         SubdivisionOption(symbol: "♩", name: "4분음표", pulses: 1),
         SubdivisionOption(symbol: "♪", name: "8분음표", pulses: 2),
         SubdivisionOption(symbol: "♬", name: "16분음표", pulses: 4),
-        SubdivisionOption(symbol: "3", name: "셋잇단", pulses: 3),
-        SubdivisionOption(symbol: "6", name: "6잇단", pulses: 6),
-        SubdivisionOption(symbol: "5", name: "5잇단", pulses: 5),
+        SubdivisionOption(symbol: "3", name: "3연음", pulses: 3),
+        SubdivisionOption(symbol: "6", name: "6연음", pulses: 6),
+        SubdivisionOption(symbol: "5", name: "5연음", pulses: 5),
     ]
 }
 
@@ -28,18 +28,31 @@ extension SubdivisionOption {
 struct SubdivisionGridView: View {
     @Binding var subIdx: Int
 
-    private let columns = Array(
+    private let compactColumns = Array(
         repeating: GridItem(.flexible(), spacing: 7),
-        count: SubdivisionOption.all.count
+        count: 3
     )
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 7) {
-            ForEach(Array(SubdivisionOption.all.enumerated()), id: \.offset) { index, option in
-                tile(option: option, isOn: subIdx == index) {
-                    subIdx = index
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 7) {
+                options
             }
+            .frame(maxWidth: .infinity)
+            LazyVGrid(columns: compactColumns, spacing: 7) {
+                options
+            }
+        }
+    }
+
+    /// 각 타일이 최소 52pt를 확보하지 못하면 `ViewThatFits`가 3×2 배치로 전환합니다.
+    @ViewBuilder
+    private var options: some View {
+        ForEach(Array(SubdivisionOption.all.enumerated()), id: \.offset) { index, option in
+            tile(option: option, isOn: subIdx == index) {
+                subIdx = index
+            }
+            .frame(minWidth: 52)
         }
     }
 
@@ -50,11 +63,9 @@ struct SubdivisionGridView: View {
                     .font(.system(size: 19))
                     .foregroundStyle(Theme.Colors.ink)
                 Text(option.name)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(isOn ? Theme.Colors.ink : Theme.Colors.mut2)
-                    // 6열에서도 "16분음표" 가 줄바꿈/축약되지 않도록 한 줄로 고정합니다.
                     .lineLimit(1)
-                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 9)

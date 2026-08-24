@@ -15,29 +15,21 @@ struct SettingsScreen: View {
             SoundSettingsView(state: state)
                 .tabItem { Label("사운드", systemImage: "speaker.wave.2") }
 
-            tabBody { TrainerSectionView(state: state) }
+            TrainerSectionView(state: state)
                 .tabItem { Label("연습", systemImage: "figure.run") }
 
-            tabBody { DisplaySettingsView(state: state) }
+            DisplaySettingsView(state: state)
                 .tabItem { Label("표시", systemImage: "sun.max") }
         }
-        .frame(width: Self.width)
+        // 탭마다 콘텐츠 양이 달라도 설정 창 크기가 튀지 않도록 고정합니다.
+        .frame(width: Self.width, height: Self.height)
         .background(Theme.Colors.bg)
         .preferredColorScheme(state.appearance.colorScheme)
     }
 
     /// 설정 창 폭입니다.
-    static let width: CGFloat = 380
-
-    /// 각 탭 콘텐츠에 공통 여백을 입힙니다.
-    private func tabBody<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 0) {
-            content()
-            Spacer(minLength: 0)
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
+    static let width: CGFloat = 420
+    static let height: CGFloat = 360
 }
 
 /// 클릭 음색 선택 패널입니다.
@@ -45,36 +37,25 @@ struct SoundSettingsView: View {
     @ObservedObject var state: MetronomeState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("클릭 음색")
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(Theme.Colors.mut)
-                Spacer()
-                Picker("", selection: $state.sound) {
-                    ForEach(ClickSound.allCases) { option in
-                        Text(option.displayName).tag(option)
+        Form {
+            Section {
+                LabeledContent("클릭 음색") {
+                    Picker("", selection: $state.sound) {
+                        ForEach(ClickSound.allCases) { option in
+                            Text(option.displayName).tag(option)
+                        }
                     }
+                    .labelsHidden()
+                    .fixedSize()
+                    .accessibilityLabel("클릭 음색")
                 }
-                .labelsHidden()
-                .fixedSize()
-                .accessibilityLabel("클릭 음색")
+            } header: {
+                Text("클릭")
+            } footer: {
+                Text("볼륨은 메트로놈 창 하단에서 조절합니다.")
             }
-            .padding(.horizontal, 15)
-            .padding(.vertical, 12)
-            .background {
-                RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
-                    .fill(Theme.Colors.panel)
-            }
-
-            Text("볼륨은 본 창 하단에서 조절합니다.")
-                .font(.system(size: 11))
-                .foregroundStyle(Theme.Colors.mut2)
-
-            Spacer(minLength: 0)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .formStyle(.grouped)
     }
 }
 

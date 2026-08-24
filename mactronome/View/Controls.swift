@@ -33,7 +33,11 @@ struct PressableButtonStyle: ButtonStyle {
                 // 모션 감소 시에는 크기 변화 없이 불투명도만으로 피드백합니다.
                 .scaleEffect(configuration.isPressed && !reduceMotion ? pressedScale : 1)
                 .opacity(configuration.isPressed ? pressedOpacity : 1)
-                .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+                // 리듬 입력은 누르는 순간 지연 없이 반응하고, 손을 뗄 때만 짧게 복원합니다.
+                .animation(
+                    configuration.isPressed ? nil : .easeOut(duration: 0.08),
+                    value: configuration.isPressed
+                )
         }
     }
 }

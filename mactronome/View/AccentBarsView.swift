@@ -17,6 +17,13 @@ struct AccentBarsView: View {
     let onSet: (Int, Int, AccentLevel) -> Void
     /// 현재 뷰에 제안된 가로 폭입니다. 창 리사이즈 시 줄바꿈 계산에 반영합니다.
     @State private var layoutWidth = Self.defaultAvailableWidth
+    /// 마지막으로 편집한 셀입니다. 상단 단계 선택기로 강세를 직접 지정할 때 사용합니다.
+    @State private var selectedCell: Cell?
+
+    private struct Cell: Equatable {
+        let beat: Int
+        let pulse: Int
+    }
 
     // MARK: - Layout 상수 (폭 계산과 바 렌더가 공유하는 단일 소스)
 
@@ -154,20 +161,85 @@ struct AccentBarsView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            barsContent(availableWidth: max(1, geometry.size.width))
-                .frame(maxWidth: .infinity)
+        VStack(spacing: 10) {
+            accentEditor
+
+            GeometryReader { geometry in
+                barsContent(availableWidth: max(1, geometry.size.width))
+                    .frame(maxWidth: .infinity)
+            }
+            // 높이 계산용 상태와 무관하게 GeometryReader의 실제 폭으로 즉시 배치합니다.
+            // 최종 자식의 폭을 다시 측정하면 좁게 배치된 결과가 다음 측정 폭이 되는
+            // 피드백 루프가 생겨, 창이 넓어도 한 박씩 줄바꿈될 수 있습니다.
+            .frame(height: visibleHeight)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.width
+            } action: { newWidth in
+                guard newWidth > 0 else { return }
+                layoutWidth = newWidth
+            }
         }
-        // 높이 계산용 상태와 무관하게 GeometryReader의 실제 폭으로 즉시 배치합니다.
-        // 최종 자식의 폭을 다시 측정하면 좁게 배치된 결과가 다음 측정 폭이 되는
-        // 피드백 루프가 생겨, 창이 넓어도 한 박씩 줄바꿈될 수 있습니다.
-        .frame(height: visibleHeight)
-        .onGeometryChange(for: CGFloat.self) { geometry in
-            geometry.size.width
-        } action: { newWidth in
-            guard newWidth > 0 else { return }
-            layoutWidth = newWidth
+        .onChange(of: grid.count) { _, count in
+            guard let selectedCell, selectedCell.beat >= count else { return }
+            self.selectedCell = nil
         }
+        .onChange(of: grid.first?.count) { _, pulseCount in
+            guard let selectedCell,
+                  selectedCell.pulse >= (pulseCount ?? 0) else { return }
+            self.selectedCell = nil
+        }
+    }
+
+    /// 악센트 단계 범례이자 직접 지정 도구입니다.
+    ///
+    /// 바를 한 번 선택하면 우클릭 메뉴를 열지 않고도 원하는 단계로 바로 바꿀 수 있습니다.
+    private var accentEditor: some View {
+        HStack(spacing: 6) {
+            Text(selectedCell.map { "\($0.beat + 1)박 · \($0.pulse + 1)펄스" } ?? "바를 선택하세요")
+                .font(.system(size: 10.5, weight: .medium))
+                .foregroundStyle(selectedCell == nil ? Theme.Colors.mut2 : Theme.Colors.mut)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            ForEach(AccentLevel.allCases) { level in
+                Button {
+                    guard let selectedCell else { return }
+                    onSet(selectedCell.beat, selectedCell.pulse, level)
+                } label: {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(level.fill)
+                            .overlay {
+                                Circle().strokeBorder(level.borderColor, lineWidth: 1.5)
+                            }
+                            .frame(width: 9, height: 9)
+                        Text(level.displayName)
+                            .font(.system(size: 10.5, weight: .medium))
+                    }
+                    .foregroundStyle(isSelected(level) ? Theme.Colors.ink : Theme.Colors.mut)
+                    .padding(.horizontal, 6)
+                    .frame(height: 25)
+                    .background {
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(isSelected(level) ? Theme.Colors.surfaceRaised : Color.clear)
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .strokeBorder(isSelected(level) ? Theme.Colors.acc : .clear, lineWidth: 1)
+                    }
+                }
+                .buttonStyle(PressableButtonStyle())
+                .disabled(selectedCell == nil)
+                .accessibilityLabel("\(level.displayName)으로 지정")
+            }
+        }
+        .help("바를 클릭하면 강세가 순환합니다. 선택한 바는 위 단계 버튼으로 바로 지정할 수 있습니다.")
+    }
+
+    private func isSelected(_ level: AccentLevel) -> Bool {
+        guard let selectedCell,
+              grid.indices.contains(selectedCell.beat),
+              grid[selectedCell.beat].indices.contains(selectedCell.pulse) else { return false }
+        return grid[selectedCell.beat][selectedCell.pulse] == level
     }
 
     @ViewBuilder
@@ -267,7 +339,10 @@ struct AccentBarsView: View {
         let fill = isActive ? Theme.Colors.acc : level.fill
         let border = isActive ? Theme.Colors.acc : level.borderColor
 
+        let isSelected = selectedCell == Cell(beat: beatIndex, pulse: pulseIndex)
+
         return Button {
+            selectedCell = Cell(beat: beatIndex, pulse: pulseIndex)
             onCycle(beatIndex, pulseIndex)
         } label: {
             // 바닥 정렬된 실제 바 + 컨테이너 전체를 덮는 투명 히트 영역.
@@ -285,11 +360,17 @@ struct AccentBarsView: View {
                 .frame(width: width, height: height)
                 .shadow(color: isActive ? Theme.Colors.accSoft : .clear, radius: isActive ? 6 : 0)
                 .frame(width: width, height: Self.barContainerHeight, alignment: .bottom)
+                .overlay {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: Theme.Radius.bar + 2, style: .continuous)
+                            .strokeBorder(Theme.Colors.acc, lineWidth: 2)
+                            .padding(.horizontal, -3)
+                    }
+                }
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressableButtonStyle())
         .animation(Theme.Motion.bar, value: level)
-        .animation(Theme.Motion.chip, value: isActive)
         .contextMenu {
             // 순환만 가능하면 한 단계 되돌리는 데 세 번 눌러야 하므로 직접 지정을 제공합니다.
             ForEach(AccentLevel.allCases) { option in
@@ -307,5 +388,6 @@ struct AccentBarsView: View {
         .accessibilityLabel("\(beatIndex + 1)박 \(pulseIndex + 1)번째 펄스")
         .accessibilityValue(level.displayName)
         .accessibilityHint("누르면 다음 강세로 바뀝니다")
+        .help("\(beatIndex + 1)박 \(pulseIndex + 1)펄스 · \(level.displayName) · 클릭하여 변경")
     }
 }

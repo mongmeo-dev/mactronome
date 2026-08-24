@@ -6,55 +6,37 @@ struct DisplaySettingsView: View {
     @ObservedObject var state: MetronomeState
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("비주얼 플래시")
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(Theme.Colors.mut)
-                Spacer()
-                Toggle("", isOn: $state.visualFlash)
-                    .labelsHidden()
+        Form {
+            Section {
+                Toggle("비주얼 플래시", isOn: $state.visualFlash)
                     .toggleStyle(.switch)
-                    .controlSize(.small)
                     .tint(Theme.Colors.acc)
-                    .accessibilityLabel("비주얼 플래시")
+            } header: {
+                Text("박자 표시")
+            } footer: {
+                Text("강박에서 창 전체를 짧게 밝혀 소리를 듣기 어려운 상황에서도 박자를 보여줍니다.")
             }
 
-            HStack {
-                Text("화면 모드")
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(Theme.Colors.mut)
-                Spacer()
-                Picker("", selection: $state.appearance) {
-                    ForEach(AppAppearance.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
+            Section("외관") {
+                LabeledContent("화면 모드") {
+                    Picker("", selection: $state.appearance) {
+                        ForEach(AppAppearance.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
                     }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .fixedSize()
+                    .accessibilityLabel("화면 모드")
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .controlSize(.small)
-                .fixedSize()
-                .accessibilityLabel("화면 모드")
             }
 
-            HStack {
-                Text("항상 위에")
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundStyle(Theme.Colors.mut)
-                Spacer()
-                Toggle("", isOn: $state.floating)
-                    .labelsHidden()
+            Section("창") {
+                Toggle("항상 위에", isOn: $state.floating)
                     .toggleStyle(.switch)
-                    .controlSize(.small)
                     .tint(Theme.Colors.acc)
-                    .accessibilityLabel("항상 위에")
             }
         }
-        .padding(.horizontal, 15)
-        .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
-                .fill(Theme.Colors.panel)
-        }
+        .formStyle(.grouped)
     }
 }

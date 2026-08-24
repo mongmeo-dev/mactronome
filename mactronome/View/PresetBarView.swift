@@ -5,9 +5,22 @@ import SwiftUI
 struct PresetBarView: View {
     @ObservedObject var state: MetronomeState
 
-    @State private var showingSaveDialog = false
-    @State private var showingOverwriteConfirm = false
+    @State private var dialog: Dialog?
     @State private var newPresetName = ""
+
+    private enum Dialog: Identifiable {
+        case save
+        case overwrite
+        case delete(Preset)
+
+        var id: String {
+            switch self {
+            case .save: return "save"
+            case .overwrite: return "overwrite"
+            case .delete(let preset): return "delete-\(preset.id)"
+            }
+        }
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -31,7 +44,7 @@ struct PresetBarView: View {
                     Menu("삭제") {
                         ForEach(state.presets) { preset in
                             Button(role: .destructive) {
-                                state.deletePreset(preset)
+                                dialog = .delete(preset)
                             } label: {
                                 Text(preset.name)
                             }
@@ -69,7 +82,7 @@ struct PresetBarView: View {
 
             Button {
                 newPresetName = state.activePresetName ?? ""
-                showingSaveDialog = true
+                dialog = .save
             } label: {
                 Text("현재 설정 저장")
                     .font(.system(size: 12, weight: .semibold))
@@ -85,30 +98,72 @@ struct PresetBarView: View {
             RoundedRectangle(cornerRadius: Theme.Radius.control, style: .continuous)
                 .fill(Theme.Colors.panel)
         }
-        .alert("프리셋 저장", isPresented: $showingSaveDialog) {
-            TextField("이름", text: $newPresetName)
-            Button("저장", action: requestSave)
-            Button("취소", role: .cancel) {}
+        .alert(dialogTitle, isPresented: dialogPresented) {
+            dialogActions
         } message: {
-            Text("현재 BPM·박자·강세·사운드·연습 설정을 저장합니다.")
-        }
-        // 같은 이름이 있으면 말없이 덮어쓰던 동작을 확인 단계로 바꿉니다.
-        .alert("같은 이름의 프리셋이 있습니다", isPresented: $showingOverwriteConfirm) {
-            Button("덮어쓰기", role: .destructive) {
-                state.saveCurrentAsPreset(named: newPresetName)
-            }
-            Button("취소", role: .cancel) {}
-        } message: {
-            Text("\"\(newPresetName.trimmingCharacters(in: .whitespacesAndNewlines))\" 의 기존 내용이 현재 설정으로 바뀝니다.")
+            Text(dialogMessage)
         }
     }
 
     /// 이름이 중복이면 확인을 받고, 아니면 바로 저장합니다.
     private func requestSave() {
         if state.presetExists(named: newPresetName) {
-            showingOverwriteConfirm = true
+            // 현재 alert가 닫힌 뒤 다음 alert를 표시해야 AppKit이 전환을 놓치지 않습니다.
+            DispatchQueue.main.async { dialog = .overwrite }
         } else {
             state.saveCurrentAsPreset(named: newPresetName)
+        }
+    }
+
+    private var dialogPresented: Binding<Bool> {
+        Binding(
+            get: { dialog != nil },
+            set: { if !$0 { dialog = nil } }
+        )
+    }
+
+    private var dialogTitle: String {
+        switch dialog {
+        case .save: return "프리셋 저장"
+        case .overwrite: return "같은 이름의 프리셋이 있습니다"
+        case .delete(let preset): return "\"\(preset.name)\" 삭제"
+        case nil: return ""
+        }
+    }
+
+    private var dialogMessage: String {
+        switch dialog {
+        case .save:
+            return "현재 BPM·박자·강세·사운드·연습 설정을 저장합니다."
+        case .overwrite:
+            let name = newPresetName.trimmingCharacters(in: .whitespacesAndNewlines)
+            return "\"\(name)\"의 기존 내용이 현재 설정으로 바뀝니다."
+        case .delete:
+            return "삭제한 프리셋은 복구할 수 없습니다."
+        case nil:
+            return ""
+        }
+    }
+
+    @ViewBuilder
+    private var dialogActions: some View {
+        switch dialog {
+        case .save:
+            TextField("이름", text: $newPresetName)
+            Button("저장", action: requestSave)
+            Button("취소", role: .cancel) {}
+        case .overwrite:
+            Button("덮어쓰기", role: .destructive) {
+                state.saveCurrentAsPreset(named: newPresetName)
+            }
+            Button("취소", role: .cancel) {}
+        case .delete(let preset):
+            Button("삭제", role: .destructive) {
+                state.deletePreset(preset)
+            }
+            Button("취소", role: .cancel) {}
+        case nil:
+            EmptyView()
         }
     }
 }

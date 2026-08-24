@@ -18,6 +18,7 @@ struct MetronomeScreen: View {
     /// BPM 직접 입력 편집 모드 여부와 임시 입력 문자열입니다.
     @State private var editingBPM = false
     @State private var bpmText = ""
+    @State private var bpmInputError: String?
     /// BPM 입력 필드 포커스입니다.
     @FocusState private var bpmFieldFocused: Bool
     /// 비주얼 플래시 오버레이의 현재 불투명도입니다.
@@ -217,11 +218,41 @@ struct MetronomeScreen: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 0. 프리셋 바
-            PresetBarView(state: state)
-                .padding(.bottom, 18)
+            // 1. BPM 리드아웃 — 앱을 열자마자 핵심 값을 읽고 조절할 수 있게 가장 먼저 둡니다.
+            bpmReadout
+                .padding(.bottom, 6)
 
-            // 1. 악센트 바 — 탭은 state.cycleCell 로 라우팅, 재생 중 활성 비트를 강조합니다.
+            // 2. 템포 캡션 + 편집 안내 + 마디/카운트인 + 자동 가속 인디케이터
+            VStack(spacing: 4) {
+                Text("\(tempoWord) · BPM")
+                    .font(.system(size: 12))
+                    .tracking(1.68) // .14em @ 12px
+                    .foregroundStyle(Theme.Colors.mut2)
+                if let bpmInputError {
+                    Text(bpmInputError)
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(Theme.Colors.danger)
+                } else {
+                    Label("클릭 입력 · 드래그/스크롤 조절", systemImage: "pencil")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Theme.Colors.mut2)
+                }
+                barIndicator
+                trainerIndicator
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 12)
+
+            // 3. 시작/TAP — 관리·편집 항목보다 먼저 배치합니다.
+            transportRow
+                .padding(.bottom, 12)
+
+            if let message = state.lastError {
+                errorBanner(message)
+                    .padding(.bottom, 10)
+            }
+
+            // 4. 악센트 바 — 탭은 state.cycleCell 로 라우팅, 재생 중 활성 비트를 강조합니다.
             AccentBarsView(
                 grid: state.grid,
                 activePulse: activePulse,
@@ -231,25 +262,9 @@ struct MetronomeScreen: View {
                 }
             )
             .frame(maxWidth: .infinity)
-            .padding(.bottom, 22)
+            .padding(.bottom, 14)
 
-            // 2. BPM 리드아웃
-            bpmReadout
-                .padding(.bottom, 6)
-
-            // 3. 템포 캡션 + 마디/카운트인 + 자동 가속 인디케이터
-            VStack(spacing: 4) {
-                Text("\(tempoWord) · BPM")
-                    .font(.system(size: 12))
-                    .tracking(1.68) // .14em @ 12px
-                    .foregroundStyle(Theme.Colors.mut2)
-                barIndicator
-                trainerIndicator
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, 20)
-
-            // 4. 박자표
+            // 5. 박자표
             sectionLabel("박자표")
                 .padding(.bottom, 10)
             TimeSignatureEditorView(
@@ -260,26 +275,18 @@ struct MetronomeScreen: View {
             )
             .padding(.bottom, 22)
 
-            // 5. 분할
+            // 6. 분할
             sectionLabel("분할")
                 .padding(.bottom, 10)
             SubdivisionGridView(subIdx: subIdxBinding)
                 .padding(.bottom, 22)
 
-            // 6. 볼륨 (자주 만지는 값이라 본 창에 남깁니다)
+            // 7. 볼륨 (자주 만지는 값이라 본 창에 남깁니다)
             volumeRow
                 .padding(.bottom, 18)
 
-            // 사운드 음색 / 연습 도구 / 표시·창 설정은 Settings 씬(⌘,)으로 옮겼습니다.
-            // 상시 노출 시 창 높이가 1,100pt 를 넘어 13" 화면에서 시작 버튼이
-            // 화면 밖으로 밀려났습니다.
-
-            // 7. 오디오 실패 배너 + 시작/TAP
-            if let message = state.lastError {
-                errorBanner(message)
-                    .padding(.bottom, 10)
-            }
-            transportRow
+            // 8. 프리셋은 핵심 실행 흐름을 방해하지 않도록 관리 영역인 하단에 둡니다.
+            PresetBarView(state: state)
         }
         .padding(Theme.Layout.contentPadding)
     }
@@ -344,7 +351,6 @@ struct MetronomeScreen: View {
                         )
                     }
                     .frame(width: isAccent ? 10 : 7, height: isAccent ? 10 : 7)
-                    .animation(Theme.Motion.chip, value: isActive)
             }
         }
         .frame(height: 12)
@@ -370,6 +376,13 @@ struct MetronomeScreen: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
+            Button("다시 시도") {
+                state.togglePlay()
+            }
+            .buttonStyle(PressableButtonStyle())
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(Theme.Colors.danger)
+            .accessibilityHint("오디오 엔진 시작을 다시 시도합니다")
             Button {
                 state.lastError = nil
             } label: {
@@ -465,6 +478,10 @@ struct MetronomeScreen: View {
                     .focused($bpmFieldFocused)
                     .frame(width: 160)
                     .onSubmit(commitBPM)
+                    .onKeyPress(.escape) {
+                        cancelBPMEditing()
+                        return .handled
+                    }
                     .onChange(of: bpmFieldFocused) { _, focused in
                         if !focused { commitBPM() }
                     }
@@ -518,6 +535,7 @@ struct MetronomeScreen: View {
     /// 큰 BPM 숫자를 탭하면 직접 입력 모드로 전환합니다.
     private func beginEditingBPM() {
         bpmText = "\(Int(state.bpm))"
+        bpmInputError = nil
         editingBPM = true
         bpmFieldFocused = true
     }
@@ -525,11 +543,25 @@ struct MetronomeScreen: View {
     /// 입력값을 파싱해 BPM에 반영하고(클램프는 setBPM), 편집 모드를 종료합니다.
     private func commitBPM() {
         guard editingBPM else { return }
-        if let value = Double(bpmText.trimmingCharacters(in: .whitespaces)) {
-            state.setBPM(value)
+        let trimmed = bpmText.trimmingCharacters(in: .whitespaces)
+        guard let value = Double(trimmed), value.isFinite else {
+            editingBPM = false
+            bpmInputError = "30~300 사이의 숫자를 입력하세요"
+            keyboardFocused = true
+            return
         }
+        state.setBPM(value)
+        bpmInputError = nil
         editingBPM = false
         keyboardFocused = true // 방향키/스페이스 포커스 복귀
+    }
+
+    /// 직접 입력을 취소하고 기존 BPM을 유지합니다.
+    private func cancelBPMEditing() {
+        guard editingBPM else { return }
+        editingBPM = false
+        bpmInputError = nil
+        keyboardFocused = true
     }
 
     // MARK: - Volume row
