@@ -50,7 +50,16 @@ struct MetronomeScreen: View {
                 content
             }
         }
-        .frame(width: state.compact ? Theme.Layout.compactWindowWidth : Theme.Layout.windowWidth)
+        .frame(
+            minWidth: state.compact
+                ? Theme.Layout.compactWindowWidth
+                : Theme.Layout.minimumWindowWidth,
+            idealWidth: state.compact
+                ? Theme.Layout.compactWindowWidth
+                : Theme.Layout.windowWidth,
+            maxWidth: .infinity,
+            maxHeight: .infinity
+        )
         .background(Theme.Colors.bg)
         .overlay {
             // 비주얼 플래시: 강박은 더 밝게, 약박은 은은하게.

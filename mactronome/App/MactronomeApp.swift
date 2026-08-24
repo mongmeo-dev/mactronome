@@ -28,7 +28,7 @@ struct MactronomeApp: App {
         // 커스텀 타이틀바를 직접 그리므로 시스템 타이틀바는 숨깁니다.
         // (신호등 버튼은 hiddenTitleBar 에서도 그대로 남아 좌상단에 겹쳐 표시됩니다.)
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+        .windowResizability(.automatic)
         .commands {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)

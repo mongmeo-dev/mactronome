@@ -65,6 +65,9 @@ enum Theme {
     // MARK: - Layout
 
     enum Layout {
+        /// 일반 창이 콘텐츠를 온전히 표시할 수 있는 최소 폭입니다.
+        static let minimumWindowWidth: CGFloat = 360
+        /// 최초 표시 시 사용하는 이상적 폭입니다.
         static let windowWidth: CGFloat = 452
         /// 컴팩트(미니) 모드 창 폭입니다.
         static let compactWindowWidth: CGFloat = 260

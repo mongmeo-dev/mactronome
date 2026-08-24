@@ -6,9 +6,8 @@ import AppKit
 /// 본 창이 노트북 화면 안에 들어가는지 실제로 레이아웃해서 측정합니다.
 ///
 /// 배경: 사운드/연습/표시 설정을 한 컬럼에 전부 펼쳐 두던 시절
-/// 창 높이가 1,100pt 를 넘었습니다. 창은 `.windowResizability(.contentSize)` 라
-/// 리사이즈도 안 되고 스크롤뷰도 없어서, 13" 노트북에서는 하단 시작 버튼에
-/// 접근할 방법이 아예 없었습니다.
+/// 창 높이가 1,100pt 를 넘었던 회귀를 방지하고, 리사이즈 가능한 창의
+/// 기본 콘텐츠 크기가 안전한 범위인지 검증합니다.
 @MainActor
 final class WindowSizeTests: XCTestCase {
 
@@ -85,10 +84,11 @@ final class WindowSizeTests: XCTestCase {
         XCTAssertEqual(measure(state).height, before, accuracy: 1.0)
     }
 
-    /// 창 폭은 디자인 폭에 고정되어야 합니다(가로 스크롤/잘림 방지).
-    func test_windowWidth_matchesDesign() {
+    /// 최초 콘텐츠 폭은 디자인 폭을 유지하되 더 좁은 창까지 허용해야 합니다.
+    func test_windowWidth_usesResizableBounds() {
         let size = measure(MetronomeState())
         XCTAssertEqual(size.width, Theme.Layout.windowWidth, accuracy: 1.0)
+        XCTAssertLessThan(Theme.Layout.minimumWindowWidth, Theme.Layout.windowWidth)
     }
 
     /// 설정 창도 화면 안에 들어와야 합니다.
