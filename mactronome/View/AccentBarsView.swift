@@ -24,10 +24,10 @@ struct AccentBarsView: View {
     static let subBarWidth: CGFloat = 11
     /// 박자 그룹 내 바 사이 간격.
     static let barSpacing: CGFloat = 4
-    /// 박자 그룹 좌우 padding 합(각 6).
-    static let groupHorizontalPadding: CGFloat = 12
-    /// 박자 그룹 사이 간격.
-    static let groupSpacing: CGFloat = 16
+    /// 박자 그룹 사이 간격. 그룹 내부 바 간격과 같아 모든 펄스가 일정하게 이어집니다.
+    static let beatSpacing: CGFloat = barSpacing
+    /// 여러 줄로 배치할 때 줄 사이 간격.
+    static let rowSpacing: CGFloat = 16
     /// 콘텐츠 가용 폭 = windowWidth(452) − contentPadding 좌우(30×2).
     static let availableWidth: CGFloat = 392
 
@@ -46,21 +46,21 @@ struct AccentBarsView: View {
 
     /// 펄스 수(= 한 박자 그룹의 바 개수)로부터 그룹 하나의 실제 폭을 계산합니다.
     static func groupWidth(pulses: Int) -> CGFloat {
-        guard pulses > 0 else { return groupHorizontalPadding }
+        guard pulses > 0 else { return 0 }
         let bars = mainBarWidth + subBarWidth * CGFloat(pulses - 1)
         let gaps = barSpacing * CGFloat(pulses - 1)
-        return bars + gaps + groupHorizontalPadding
+        return bars + gaps
     }
 
     /// 가용 폭 안에 한 줄로 놓을 수 있는 박자 그룹 개수를 계산합니다.
-    /// 이전에는 상수 2로 고정돼 있어서, 4분음표 8박(한 줄에 7개가 들어감)이
-    /// 2개씩 4줄로 쪼개지며 창이 불필요하게 세로로 길어졌습니다.
+    /// 이전에는 상수 2로 고정돼 있어서, 한 줄에 들어가는 박자도
+    /// 2개씩 여러 줄로 쪼개지며 창이 불필요하게 세로로 길어졌습니다.
     /// 뷰 상태와 무관한 순수 계산이라 단위 테스트로 검증할 수 있습니다.
     static func groupsPerRow(pulses: Int) -> Int {
         let width = groupWidth(pulses: pulses)
         guard width > 0 else { return 1 }
-        // n개를 놓으려면 width*n + groupSpacing*(n-1) ≤ availableWidth 여야 합니다.
-        let fit = (availableWidth + groupSpacing) / (width + groupSpacing)
+        // n개를 놓으려면 width*n + beatSpacing*(n-1) ≤ availableWidth 여야 합니다.
+        let fit = (availableWidth + beatSpacing) / (width + beatSpacing)
         return max(1, Int(fit.rounded(.down)))
     }
 
@@ -92,7 +92,7 @@ struct AccentBarsView: View {
         let rows = rowCount(beatCount: beatCount, pulses: pulses)
         guard rows > 0 else { return singleGroupRowHeight }
         return singleGroupRowHeight * CGFloat(rows)
-            + groupSpacing * CGFloat(rows - 1)
+            + rowSpacing * CGFloat(rows - 1)
     }
 
     /// 화면에 한 번에 보여 주는 최대 줄 수입니다. 이를 넘는 줄은 스크롤로 처리합니다.
@@ -107,7 +107,7 @@ struct AccentBarsView: View {
         let rows = min(rowCount(beatCount: beatCount, pulses: pulses), maxVisibleRows)
         guard rows > 0 else { return singleGroupRowHeight }
         return singleGroupRowHeight * CGFloat(rows)
-            + groupSpacing * CGFloat(rows - 1)
+            + rowSpacing * CGFloat(rows - 1)
     }
 
     /// 현재 grid 기준 콘텐츠 높이입니다.
@@ -139,7 +139,7 @@ struct AccentBarsView: View {
 
     /// 한 줄 배치(기존 동작). 모든 그룹이 가용 폭 안에 들어갈 때 사용합니다.
     private var singleRow: some View {
-        HStack(alignment: .bottom, spacing: Self.groupSpacing) {
+        HStack(alignment: .bottom, spacing: Self.beatSpacing) {
             ForEach(Array(grid.enumerated()), id: \.offset) { beatIndex, row in
                 beatGroup(beatIndex: beatIndex, row: row)
             }
@@ -153,9 +153,9 @@ struct AccentBarsView: View {
         let chunks = stride(from: 0, to: indexedRows.count, by: perRow).map { start in
             Array(indexedRows[start..<min(start + perRow, indexedRows.count)])
         }
-        return VStack(alignment: .center, spacing: Self.groupSpacing) {
+        return VStack(alignment: .center, spacing: Self.rowSpacing) {
             ForEach(Array(chunks.enumerated()), id: \.offset) { _, chunk in
-                HStack(alignment: .bottom, spacing: Self.groupSpacing) {
+                HStack(alignment: .bottom, spacing: Self.beatSpacing) {
                     ForEach(chunk, id: \.offset) { beatIndex, row in
                         beatGroup(beatIndex: beatIndex, row: row)
                     }
@@ -185,8 +185,6 @@ struct AccentBarsView: View {
                 .font(.monoTabular(size: 11, weight: .semibold))
                 .foregroundStyle(isActiveBeat ? Theme.Colors.acc : Theme.Colors.mut)
         }
-        // 그룹 좌우 여백만 유지(폭 계산 groupHorizontalPadding=12과 일치). 배경/확대 없음.
-        .padding(.horizontal, 6)
     }
 
     /// 바 하나를 그립니다.

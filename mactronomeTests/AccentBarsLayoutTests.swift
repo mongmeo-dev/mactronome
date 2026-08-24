@@ -9,20 +9,24 @@ final class AccentBarsLayoutTests: XCTestCase {
 
     // MARK: - groupWidth
 
-    /// pulses=1(4분음표)이면 메인 바 1개 + 좌우 padding 만큼입니다. (28 + 12)
+    /// pulses=1(4분음표)이면 메인 바 1개의 폭입니다.
     func test_groupWidth_singlePulse() {
-        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 1), 40, accuracy: 0.001)
+        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 1), 28, accuracy: 0.001)
     }
 
-    /// pulses=6(6잇단): 28 + 11×5 + 4×5 + 12 = 115.
+    /// pulses=6(6잇단): 28 + 11×5 + 4×5 = 103.
     func test_groupWidth_sextuplet() {
-        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 6), 115, accuracy: 0.001)
+        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 6), 103, accuracy: 0.001)
     }
 
-    /// pulses 가 0이어도 안전하게 padding 폭을 반환합니다(음수 방지).
+    /// pulses 가 0이면 폭은 0입니다(음수 방지).
     func test_groupWidth_zeroPulseIsSafe() {
-        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 0),
-                       AccentBarsView.groupHorizontalPadding, accuracy: 0.001)
+        XCTAssertEqual(AccentBarsView.groupWidth(pulses: 0), 0, accuracy: 0.001)
+    }
+
+    /// 원박-분할박과 분할박-다음 원박 사이의 간격은 같아야 합니다.
+    func test_spacingBetweenBeats_matchesSpacingWithinBeat() {
+        XCTAssertEqual(AccentBarsView.beatSpacing, AccentBarsView.barSpacing)
     }
 
     // MARK: - overflowsSingleRow
@@ -34,16 +38,16 @@ final class AccentBarsLayoutTests: XCTestCase {
 
     /// 16분음표(pulses=4) 4박자까지는 기존처럼 한 줄에 들어가야 합니다(기존 동작 유지).
     func test_singleRow_sixteenthFourBeats_fits() {
-        // 그룹폭 = 28 + 11×3 + 4×3 + 12 = 85. 4개 = 340 + spacing 16×3(48) = 388 ≤ 392.
+        // 그룹폭 = 28 + 11×3 + 4×3 = 73. 4개 = 292 + spacing 4×3(12) = 304 ≤ 392.
         XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 4))
     }
 
-    /// 6잇단(pulses=6) 4박자는 한 줄 폭(약 508pt)이 가용 폭 392를 넘습니다 → 줄바꿈 필요.
+    /// 6잇단(pulses=6) 4박자는 한 줄 폭(424pt)이 가용 폭 392를 넘습니다 → 줄바꿈 필요.
     func test_sextuplet_fourBeats_overflows() {
         XCTAssertTrue(AccentBarsView.overflowsSingleRow(beatCount: 4, pulses: 6))
     }
 
-    /// 6잇단이라도 박자 2개면 한 줄(약 246pt)에 들어갑니다 → 넘치지 않음.
+    /// 6잇단이라도 박자 2개면 한 줄(210pt)에 들어갑니다 → 넘치지 않음.
     func test_sextuplet_twoBeats_fits() {
         XCTAssertFalse(AccentBarsView.overflowsSingleRow(beatCount: 2, pulses: 6))
     }
@@ -62,17 +66,17 @@ final class AccentBarsLayoutTests: XCTestCase {
     // MARK: - groupsPerRow
 
     /// 가용 폭 안에 실제로 들어가는 개수를 계산해야 합니다(과거엔 상수 2 고정).
-    /// 4분음표 그룹폭 40 → 40×7 + 16×6 = 376 ≤ 392, 8개면 416 > 392 이므로 7개.
-    func test_groupsPerRow_quarterNote_sevenPerRow() {
-        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 1), 7)
+    /// 4분음표 그룹폭 28 → 28×12 + 4×11 = 380 ≤ 392 이므로 최대 설정 12개가 들어갑니다.
+    func test_groupsPerRow_quarterNote_twelvePerRow() {
+        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 1), 12)
     }
 
-    /// 8분음표 그룹폭 55 → 55×5 + 16×4 = 339 ≤ 392, 6개면 410 > 392 이므로 5개.
-    func test_groupsPerRow_eighthNote_fivePerRow() {
-        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 2), 5)
+    /// 8분음표 그룹폭 43 → 43×8 + 4×7 = 372 ≤ 392, 9개면 419 > 392 이므로 8개.
+    func test_groupsPerRow_eighthNote_eightPerRow() {
+        XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 2), 8)
     }
 
-    /// 6잇단 그룹폭 115 → 115×3 + 16×2 = 377 ≤ 392, 4개면 508 > 392 이므로 3개.
+    /// 6잇단 그룹폭 103 → 103×3 + 4×2 = 317 ≤ 392, 4개면 424 > 392 이므로 3개.
     func test_groupsPerRow_sextuplet_threePerRow() {
         XCTAssertEqual(AccentBarsView.groupsPerRow(pulses: 6), 3)
     }
@@ -83,8 +87,8 @@ final class AccentBarsLayoutTests: XCTestCase {
         for pulses in 1...6 {
             let n = AccentBarsView.groupsPerRow(pulses: pulses)
             let width = AccentBarsView.groupWidth(pulses: pulses)
-            let used = width * CGFloat(n) + AccentBarsView.groupSpacing * CGFloat(n - 1)
-            let usedPlusOne = width * CGFloat(n + 1) + AccentBarsView.groupSpacing * CGFloat(n)
+            let used = width * CGFloat(n) + AccentBarsView.beatSpacing * CGFloat(n - 1)
+            let usedPlusOne = width * CGFloat(n + 1) + AccentBarsView.beatSpacing * CGFloat(n)
             XCTAssertLessThanOrEqual(used, AccentBarsView.availableWidth,
                                      "pulses=\(pulses): \(n)개가 가용 폭을 넘습니다")
             XCTAssertGreaterThan(usedPlusOne, AccentBarsView.availableWidth,
@@ -99,16 +103,15 @@ final class AccentBarsLayoutTests: XCTestCase {
         }
     }
 
-    /// 4분음표 8박은 한 줄(7개)을 딱 하나 넘으므로 2줄이면 충분합니다.
-    /// 과거 상수 2 고정에서는 4줄로 잘못 쪼개졌습니다.
-    func test_quarterNoteEightBeats_isTwoRows() {
-        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 8, pulses: 1), 2)
+    /// 4분음표 8박은 일정한 간격으로 한 줄에 들어갑니다.
+    func test_quarterNoteEightBeats_isOneRow() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 8, pulses: 1), 1)
     }
 
-    /// 4분음표 12박도 2줄(7+5)이어야 합니다. 과거에는 6줄이었습니다.
-    func test_quarterNoteTwelveBeats_isTwoRows() {
-        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 1), 2)
-        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 1), 190, accuracy: 0.001)
+    /// 4분음표 최대 설정 12박도 한 줄에 들어갑니다.
+    func test_quarterNoteTwelveBeats_isOneRow() {
+        XCTAssertEqual(AccentBarsView.rowCount(beatCount: 12, pulses: 1), 1)
+        XCTAssertEqual(AccentBarsView.contentHeight(beatCount: 12, pulses: 1), 87, accuracy: 0.001)
     }
 
     /// 최대 설정(12박 × 6잇단)에서도 4줄로 끝나야 합니다(과거 6줄, 602pt).
@@ -139,7 +142,7 @@ final class AccentBarsLayoutTests: XCTestCase {
     /// 어떤 박자/분할 조합에서도 표시 높이는 상한을 넘지 않아야 합니다.
     func test_visibleHeight_neverExceedsCap_forAnyConfiguration() {
         let cap = AccentBarsView.singleGroupRowHeight * CGFloat(AccentBarsView.maxVisibleRows)
-            + AccentBarsView.groupSpacing * CGFloat(AccentBarsView.maxVisibleRows - 1)
+            + AccentBarsView.rowSpacing * CGFloat(AccentBarsView.maxVisibleRows - 1)
         for beats in 1...12 {
             for pulses in MetronomeState.subCounts {
                 XCTAssertLessThanOrEqual(
@@ -183,7 +186,7 @@ final class AccentBarsLayoutTests: XCTestCase {
     }
 
     /// 여러 줄이면 창이 늘어나야 하므로 한 줄보다 높이가 커야 합니다.
-    /// 2줄 = 87×2 + groupSpacing(16) = 190.
+    /// 2줄 = 87×2 + rowSpacing(16) = 190.
     func test_contentHeight_twoRows_isTaller() {
         let single = AccentBarsView.contentHeight(beatCount: 2, pulses: 6)
         let wrapped = AccentBarsView.contentHeight(beatCount: 4, pulses: 6)
