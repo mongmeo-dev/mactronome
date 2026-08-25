@@ -32,8 +32,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.mongmeo.mactronome
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: mactronome/Info.plist
-        MARKETING_VERSION: "0.1.4"
-        CURRENT_PROJECT_VERSION: "6"
+        MARKETING_VERSION: "0.1.5"
+        CURRENT_PROJECT_VERSION: "7"
         SWIFT_VERSION: "6.0"
         ENABLE_HARDENED_RUNTIME: YES
       configs:
